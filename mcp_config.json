@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/HimanshuJ16/tradefloor@v0.1.0#subdirectory=server",
+        "git+https://github.com/HimanshuJ16/tradefloor@v0.1.1#subdirectory=server",
         "tradefloor-mcp"
       ]
     }

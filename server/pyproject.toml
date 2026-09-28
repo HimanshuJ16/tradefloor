@@ -1,6 +1,6 @@
 [project]
 name = "tradefloor"
-version = "0.1.0"
+version = "0.1.1"
 description = "Multi-agent market analysis for any exchange: MCP server with deterministic, point-in-time analytics."
 license = "MIT"
 requires-python = ">=3.10"

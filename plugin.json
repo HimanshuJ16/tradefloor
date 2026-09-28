@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tradefloor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A trading desk for any market: analysts, bull/bear debate, trader, risk committee and portfolio manager over deterministic, point-in-time market data. Direction with calibrated probabilities, a sized trade plan, and a journal that scores every call.",
   "author": {
     "name": "Himanshu Jangir",
