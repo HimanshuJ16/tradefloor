@@ -10,7 +10,7 @@ from datetime import date
 
 from mcp.server.mcpserver import MCPServer
 
-from . import data, forecast, indicators, intraday, journal, markets, plan, premarket, scout, settings
+from . import data, forecast, indicators, intraday, journal, markets, plan, premarket, scout, settings, swarm
 
 mcp = MCPServer(
     "tradefloor",
@@ -340,10 +340,54 @@ def intraday_scan(market: str, top: int = 8, at: str | None = None, size: int | 
 
 
 @mcp.tool()
+def swarm_roster(symbol: str) -> dict:
+    """The participant groups of the market swarm for this instrument's market (for example
+    foreign institutions, domestic funds, retail, prop desks, market makers, event funds),
+    with each group's behaviour and a description to brief a persona agent. Weights are
+    illustrative defaults, not measured shares."""
+    try:
+        code = markets.exchange_for_symbol(symbol)
+        return {"symbol": symbol, "exchange": code,
+                "groups": [{"id": g.id, "name": g.name, "weight": round(g.weight, 3), "description": g.description,
+                            "behaviour": {"fundamental": g.k_fundamental, "trend": g.k_trend, "news": g.k_news, "participation": g.participation}}
+                           for g in swarm.roster(code)],
+                "reaction_fields": {"group": "group id", "sentiment": "-1 very bearish .. +1 very bullish",
+                                    "conviction": "0 split crowd .. 1 unanimous", "persistence_days": "half-life of the reaction, 0.5 to 60",
+                                    "fair_value_shift_pct": "how far the group now thinks fair value is from today's price, -50 to 50"}}
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def swarm_simulate(symbol: str, horizon: str = "1m", reactions: list[dict] | None = None, as_of: str | None = None,
+                   worlds: int = 1000, agents: int = 2000, seed: int = 7, weights: dict | None = None) -> dict:
+    """Agent-based market simulation for one instrument: `agents` simulated traders across
+    the market's participant groups trade every day of the horizon in `worlds` Monte Carlo
+    runs, calibrated to the stock's own volatility, tails and normal drift. Without
+    reactions it returns the baseline (normal behaviour). With reactions (one per group:
+    sentiment, conviction, persistence_days, fair_value_shift_pct; see swarm_roster) it
+    returns the scenario, the shift against the baseline, a fan of paths, and which group
+    moved the price. Same seed, same answer. For a what-if, call it again with the
+    reactions to the injected event and compare."""
+    try:
+        d, ex, df, bench = _ctx(symbol, as_of, years=12)
+        h = markets.horizon_to_days(horizon, ex.trading_days)
+        out = swarm.run(df, ex.code, h, reactions, runs=max(100, min(worlds, 3000)), agents=max(200, min(agents, 5000)),
+                        seed=seed, weights=weights)
+        out.update({"symbol": symbol, "currency": ex.currency, "as_of": str(df.index[-1].date()), "horizon": horizon,
+                    "caveats": ["The simulation spreads outcomes around the stock's normal behaviour; it does not know the future.",
+                                "Reactions come from persona agents or a what-if; their skill is measured by the journal (source 'swarm').",
+                                "Group weights and the news-impact scale are assumptions, listed under 'assumptions'."]})
+        return out
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
 def journal_record(entry: dict) -> dict:
     """Log a final call so it can be scored later. Required keys: symbol, as_of,
     horizon_days, price, direction, p_up, p_down. Recommended: base_p_up, flat_band_pct,
-    rating, stop, targets, run_dir, source ('quant' or 'full').
+    rating, stop, targets, run_dir, source ('quant', 'full' or 'swarm').
     Intraday live calls: kind='intraday', symbol, exchange, mode='live', direction ('LONG'
     or 'SHORT'), trigger, stop, targets, p_follow, signal_time ('YYYY-MM-DD HH:MM').
     Pre-market picks: kind='intraday', symbol, exchange, mode='premarket', direction

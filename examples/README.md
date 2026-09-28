@@ -8,6 +8,7 @@ was written by one role; later roles read the earlier files.
 | [`scout-nifty-50-premarket-2026-09-28`](scout-nifty-50-premarket-2026-09-28/) | `/tradefloor:scout nifty 50` on Sunday 2026-09-27 | Pre-market watchlist for Monday: KOTAKBANK either side at half size; three candidates dropped by the risk committee. 11 roles, 11m32s. |
 | [`scout-nifty-50-live-replay-2026-09-22`](scout-nifty-50-live-replay-2026-09-22/) | `/tradefloor:scout nifty 50 at "2026-09-22 11:15"` | Live replay: INFY short at half size from 60 stocks; graded later as not triggered (0R). 11 roles, 9m44s. |
 | [`analyze-nifty-50-2w-2026-09-27`](analyze-nifty-50-2w-2026-09-27/) | `/tradefloor:analyze nifty 50 2w` | HOLD, no trade: no edge over two weeks with an RBI decision inside the window. 12 roles. |
+| [`swarm-nifty-50-rbi-whatif-2026-09-28`](swarm-nifty-50-rbi-whatif-2026-09-28/) | `/tradefloor:swarm nifty 50 1m what-if "the RBI raises the repo rate by 25 basis points on 7 October"` | Seed, 6 personas, 6 what-if personas, report. The crowd's reactions moved p(up) 2.5 points (noise); the hike what-if moved it 9.4 points. 280 s. |
 | [`before-after-2026-09-28`](before-after-2026-09-28/) | The same question with and without the plugin | Both replies verbatim; used in the README's before/after. |
 
 Read in order: `00-*` (request and data), `01-04` (analysts), `10/11` (debate), `20`

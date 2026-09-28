@@ -31,6 +31,7 @@ KEYWORDS = ["trading", "stocks", "indices", "multi-agent", "mcp", "global-market
 SKILLS = {
     "analyze": "Full desk analysis of one instrument: direction, probabilities, trade plan, reasoning",
     "scout": "Find intraday momentum stocks in a market and run them through the desk",
+    "swarm": "Simulate the market crowd reacting to news, with what-if scenarios",
     "direction": "Quick quant-only direction, range and plan for one instrument",
     "scan": "Rank a watchlist by tilt versus each instrument's own base rate",
     "review": "Score past calls: hit rate and Brier score against the base rate",
@@ -111,7 +112,7 @@ def agent_claude(r: dict) -> str:
     }) + f"\n<!-- {NOTE.format(src=r['src'])} -->\n\n" + r["body"]
 
 
-DESK_SKILLS = {"analyze": ["analyze"], "scout": ["scout"], "both": ["analyze", "scout"]}
+DESK_SKILLS = {"analyze": ["analyze"], "scout": ["scout"], "both": ["analyze", "scout"], "swarm": ["swarm"]}
 
 
 def role_reference(r: dict) -> str:
@@ -238,4 +239,4 @@ def targets() -> dict[str, str]:
 
 
 # Generated directories: a file inside them that no longer has a source is stale.
-GENERATED_DIRS = ["agents", "hosts/claude/agents", "skills/analyze/references", "skills/scout/references"]
+GENERATED_DIRS = ["agents", "hosts/claude/agents", "skills/analyze/references", "skills/scout/references", "skills/swarm/references"]

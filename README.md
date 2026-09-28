@@ -38,6 +38,11 @@ committee pushes back, and a portfolio manager decides. The design is
   whether it has skill instead of being told.
 - It works before the open and during the session, on 41 exchanges including India's NSE,
   with no API keys.
+- It can simulate the crowd. `/tradefloor:swarm` has one persona agent per market
+  participant group react to the news, then runs 2,000 simulated traders through 1,000
+  worlds calibrated to the stock's own volatility, with what-if scenarios. The idea comes
+  from [MiroFish](https://github.com/666ghj/MiroFish); the difference is that this one is
+  checked against real outcomes and journaled.
 
 It does not trade, does not predict prices, and cannot make a weak signal strong. It tells
 you how strong the signal was, and later, whether it was right.
@@ -137,6 +142,21 @@ What it looked for and did not find, reported the same way:
 So the pre-market scan shows a direction only when the data clears two standard errors
 from 50%, which it usually does not, and the live desk mostly stands aside.
 
+The market swarm is checked the same way: with no news reactions, its 80% range for the
+next month should hold about 80% of real outcomes. On 12 past monthly dates
+([writeup](benchmarks/results/2026-09-28-swarm-calibration.md)):
+
+| 80% range held the real 1-month outcome | NIFTY 50 (168 cases) | S&P 500 (156 cases) |
+|---|--:|--:|
+| swarm baseline | 78% | 73% |
+| quant model | 80% | 77% |
+| outcome fell below the swarm's 10th percentile (should be 10%) | 16% | 13% |
+
+Close on NIFTY stocks, still somewhat overconfident on the S&P 500's high-volatility names,
+and short on downside tails. The first version held only 69% and 65%; the two fixes that
+closed most of the gap are in the writeup. Whether the personas' reactions add skill on top
+of the baseline is what the journal measures, call by call, as source `swarm`.
+
 **Read these numbers with the limits attached.** One period (September 2026), 15 sessions
 and 75 picks per market, Yahoo's unofficial 5-minute data, today's most-traded list applied
 to past sessions, no costs or slippage in the trade column, and model settings chosen on the
@@ -173,6 +193,19 @@ KOTAKBANK.NS  either side, 0.5x   p_big_move 0.264 (base 0.234)   typical OR 2.4
 Dropped: AXISBANK (no catalyst, fights the daily downtrend), MEESHO (all three risk seats
 rejected), PAYTM (its usual opening range is wider than its own skip cap).
 ```
+
+For how the crowd will take the news, `/tradefloor:swarm`:
+
+<p align="center">
+  <img src="assets/swarm-desk.svg" width="900" alt="The market swarm: a seed of dated news, price action, backdrop and scheduled events, plus an optional what-if event, goes to one persona agent per participant group (foreign institutions, domestic funds, retail, prop desks, market makers, event funds); their reactions drive 2,000 simulated traders over 1,000 Monte Carlo worlds calibrated to the stock; the report gives odds three ways, a fan of outcomes and who moved the price; the call is journaled as source swarm">
+</p>
+
+Each persona states its group's reaction as numbers (sentiment, conviction, how long it
+lasts, where it thinks fair value is); the simulation turns them into odds and shows which
+group moved the price. Add `what-if "the RBI raises the repo rate by 25 bp"` and the
+personas react again to the injected event. Afterwards you can ask any group why, and its
+persona answers in character from its own file. A real run, with the RBI what-if:
+[examples/swarm-nifty-50-rbi-whatif-2026-09-28/](examples/swarm-nifty-50-rbi-whatif-2026-09-28/).
 
 Each role writes a report file into `tradefloor-runs/...` and the next role reads the file,
 not the chat, so every step can be inspected. Real run folders, unedited:
@@ -258,6 +291,7 @@ folder to remove them.
 | `/tradefloor:scout <market>` | Before the open: stocks likely to make a big move today, with two-sided opening-range plans. During the session: live momentum picks. Full desk. |
 | `/tradefloor:scout <market> quick` | The scan alone, no agents. |
 | `/tradefloor:analyze <symbol> [horizon]` | The full desk on one stock, index, future, FX pair or coin: direction, odds, range, sized plan. |
+| `/tradefloor:swarm <symbol> [horizon] [what-if "<event>"]` | Simulate the crowd reacting to the news: odds against normal behaviour, who moves the price, what-ifs. Ask any group why afterwards. |
 | `/tradefloor:direction <symbol> [horizon]` | The quant model alone. |
 | `/tradefloor:scan <symbols...>` | Rank a watchlist by how unusual today's setup is for each. |
 | `/tradefloor:review [symbol]` | Grade past calls against what the market did. |
@@ -287,7 +321,7 @@ uv run --project server python server/scripts/smoke.py            # live: every 
 ```
 
 `rules/tradefloor.md` and `roles/*.md` are the only hand-edited copies of the protocol and
-the twenty desk roles. `tools/build.py` generates the 71 host files from them (agents in
+the twenty-three desk roles. `tools/build.py` generates the 80 host files from them (agents in
 each host's format, rules files, manifests) and `--check` fails CI on drift. The tests
 cover the no-look-ahead guarantee directly: features computed on truncated history must
 equal the same rows computed on full history.
@@ -296,7 +330,7 @@ Recorded run of the suite (Python 3.14.0 in uv, Windows 11, 2026-09-28):
 
 ```
 ran: python tools/build.py --check && uv run --project server --group dev pytest -q tests server/tests
-result: 71 generated files match their sources; 98 passed
+result: 80 generated files match their sources; 104 passed
 ```
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). What comes next: [ROADMAP.md](ROADMAP.md).

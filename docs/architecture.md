@@ -38,11 +38,12 @@ flowchart LR
 | `intraday.py` | Intraday universes, session features (VWAP, relative volume by time of day, efficiency, opening range), momentum score, calibration on past sessions, trigger-based plans |
 | `premarket.py` | Pre-market model: features known before the session, big-move and trend-day calibration with isotonic smoothing, a two-standard-error direction lean, two-sided opening-range plans and their simulation |
 | `scout.py` | The intraday scan: screen the universe, fetch 5-minute bars, cut at `at`, choose pre-market or live mode, calibrate, rank |
-| `server.py` | 15 MCP tools, `quick_direction` first; every failure returned as `{"error": ...}` |
+| `swarm.py` | The market swarm: participant rosters, an agent-based simulation of thousands of traders over Monte Carlo worlds, calibrated to the stock's horizon spread, tails and drift; baseline, scenario, shift and attribution |
+| `server.py` | 17 MCP tools, `quick_direction` first; every failure returned as `{"error": ...}` |
 | `cli.py` | The same tools as `tradefloor <tool> key=value`, for agents with a shell but no MCP |
 
-**Roles (`roles/`)**. Twenty desk roles, host-neutral, each tagged with its desk
-(`analyze`, `scout`, or both for the three risk seats). `tools/build.py` renders them as
+**Roles (`roles/`)**. Twenty-three desk roles, host-neutral, each tagged with its desk
+(`analyze`, `scout`, `swarm`, or both for the three risk seats). `tools/build.py` renders them as
 Claude Code subagents (`hosts/claude/agents/`: analysts and debaters on `sonnet`, judges on
 the session model, mirroring the paper's quick/deep split, no Bash or Edit), portable
 subagents for Antigravity (`agents/`), and single-context references for Codex

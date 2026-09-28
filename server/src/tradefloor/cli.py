@@ -31,6 +31,8 @@ TOOLS = {
     "trade_plan": server.trade_plan,
     "scan": server.scan,
     "intraday_scan": server.intraday_scan,
+    "swarm_roster": server.swarm_roster,
+    "swarm_simulate": server.swarm_simulate,
     "journal_record": server.journal_record,
     "journal_review": server.journal_review,
     "settings": server.settings_tool,

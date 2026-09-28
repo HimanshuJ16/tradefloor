@@ -25,6 +25,7 @@
     "./hosts/claude/agents/bear-researcher.md",
     "./hosts/claude/agents/bull-researcher.md",
     "./hosts/claude/agents/catalyst-analyst.md",
+    "./hosts/claude/agents/crowd-persona.md",
     "./hosts/claude/agents/desk-head.md",
     "./hosts/claude/agents/fundamentals-analyst.md",
     "./hosts/claude/agents/intraday-pm.md",
@@ -39,7 +40,9 @@
     "./hosts/claude/agents/risk-aggressive.md",
     "./hosts/claude/agents/risk-conservative.md",
     "./hosts/claude/agents/risk-neutral.md",
+    "./hosts/claude/agents/seed-analyst.md",
     "./hosts/claude/agents/sentiment-analyst.md",
+    "./hosts/claude/agents/swarm-reporter.md",
     "./hosts/claude/agents/tape-analyst.md",
     "./hosts/claude/agents/trader.md"
   ],

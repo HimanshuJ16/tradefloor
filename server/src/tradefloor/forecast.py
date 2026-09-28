@@ -102,7 +102,10 @@ def forecast(df: pd.DataFrame, horizon_days: int, bench: pd.DataFrame | None = N
     cur_factors = {k: (None if pd.isna(v) else round(float(v), 3)) for k, v in f.iloc[-1].items()}
     w = _weights(h)
 
-    sigma_d = float(ind.ewma_vol_daily(c).iloc[-1])
+    # Volatility floor: the current EWMA estimate, but never below the past year's realised
+    # volatility. EWMA alone gave 80% ranges that held 69-73% of one-month outcomes.
+    lr_1y = ind.log_returns(c).tail(252)
+    sigma_d = max(float(ind.ewma_vol_daily(c).iloc[-1]), float(lr_1y.std()) if len(lr_1y) > 60 else 0.0)
     sigma_h = sigma_d * np.sqrt(h)
 
     lab = _label(fwd, band)
@@ -153,7 +156,7 @@ def forecast(df: pd.DataFrame, horizon_days: int, bench: pd.DataFrame | None = N
     result["expected_range_80pct"] = {
         "low": round(price * float(np.exp(drift - z * sigma_h)), 4),
         "high": round(price * float(np.exp(drift + z * sigma_h)), 4),
-        "method": "EWMA volatility x sqrt(horizon), centred on the shrunk median drift of similar setups",
+        "method": "max(EWMA, 1-year) volatility x sqrt(horizon), centred on the shrunk median drift of similar setups",
     }
 
     diff = p["up"] - p["down"]

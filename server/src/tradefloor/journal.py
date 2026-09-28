@@ -114,6 +114,13 @@ def summarize(scored: list[dict], entries: list[dict]) -> dict:
     if ref:
         out["brier_base_rate_reference"] = round(float(np.mean(ref)), 4)
         out["beats_base_rate"] = bool(brier < np.mean(ref))
+    by_source = {}
+    for s in done:
+        src = by_id.get(s["id"], {}).get("source", "unknown")
+        by_source.setdefault(src, []).append(s)
+    if len(by_source) > 1:
+        out["by_source"] = {src: {"scored": len(v), "hit_rate": round(float(np.mean([x["hit"] for x in v])), 3),
+                                  "brier_up": round(float(np.mean([x["brier_up"] for x in v])), 4)} for src, v in by_source.items()}
     if len(done) < 30:
         out["note"] = f"Only {len(done)} scored calls. Under ~30 the hit rate is mostly noise."
     return out

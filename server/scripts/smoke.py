@@ -16,6 +16,8 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 CALLS = [
+    ("swarm_roster", {"symbol": "^NSEI"}),
+    ("swarm_simulate", {"symbol": "RELIANCE.NS", "horizon": "1m", "worlds": 400, "reactions": [{"group": "fii", "sentiment": -0.5, "conviction": 0.6, "persistence_days": 8}]}),
     ("intraday_scan", {"market": "nifty 50", "at": "2026-09-25 10:30", "top": 3}),
     ("intraday_scan", {"market": "dax", "top": 3}),
     ("intraday_scan", {"market": "nifty 50", "at": "2026-09-25 09:00", "top": 3}),
@@ -54,6 +56,11 @@ def brief(name: str, out: dict) -> str:
             return f"premarket for {out['target_session'][:10]}, {out['universe_size']} stocks | {picks}"
         picks = ", ".join(f"{c['symbol']} {c['direction']} pF={c['probabilities'].get('p_follow')}" for c in out["candidates"])
         return f"{out['mode']} {out['universe_size']} stocks, calib {out['calibration']['samples']} | {picks}"
+    if name == "swarm_roster":
+        return ", ".join(f"{g['id']} {g['weight']}" for g in out["groups"])
+    if name == "swarm_simulate":
+        b, sc = out["baseline"], out["scenario"]
+        return f"{out['agents']} traders x {out['worlds']} worlds, base up {b['p_up']} -> {sc['p_up']}, top mover {out['who_moved_the_price'][0]['group']} {out['who_moved_the_price'][0]['moved_price_pct']}%"
     if name == "quick_direction":
         i, p = out["instrument"], out["probabilities"]
         return f"{i['symbol']} {out['direction']}/{out['confidence']} up={p['up']} down={p['down']} tilt={out['tilt']['value']} plan={(out.get('plan') or {}).get('side')} journal={out.get('journal_id')} {out.get('note') or ''}"

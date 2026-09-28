@@ -1,0 +1,30 @@
+{
+  "ran_at": "2026-09-28T15:07:50+05:30",
+  "horizon_days": 21,
+  "markets": [
+    {
+      "market": "nifty 50",
+      "stocks": 14,
+      "cases": 168,
+      "first_as_of": "2025-09-25",
+      "last_as_of": "2026-08-28",
+      "swarm_coverage_80": 0.78,
+      "swarm_below_p10": 0.161,
+      "quant_coverage_80": 0.804,
+      "swarm_avg_width_pct": 23.25,
+      "quant_avg_width_pct": 23.32
+    },
+    {
+      "market": "s&p 500",
+      "stocks": 13,
+      "cases": 156,
+      "first_as_of": "2025-09-24",
+      "last_as_of": "2026-08-26",
+      "swarm_coverage_80": 0.731,
+      "swarm_below_p10": 0.128,
+      "quant_coverage_80": 0.769,
+      "swarm_avg_width_pct": 40.2,
+      "quant_avg_width_pct": 40.37
+    }
+  ]
+}

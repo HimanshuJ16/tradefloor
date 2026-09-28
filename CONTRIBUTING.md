@@ -19,8 +19,8 @@ Never edit a generated file. The sources are:
 | Edit | For |
 |---|---|
 | `rules/tradefloor.md` | the protocol every host's instruction file carries |
-| `roles/*.md` | the twenty desk roles (frontmatter: `tier` quick or deep, `web` live-only or never, `desk` analyze, scout or both) |
-| `skills/*/SKILL.md` | the five procedures, shared by every host that loads skills |
+| `roles/*.md` | the twenty-three desk roles (frontmatter: `tier` quick or deep, `web` live-only or never, `desk` analyze, scout, swarm or both) |
+| `skills/*/SKILL.md` | the six procedures, shared by every host that loads skills |
 | `tools/adapters.py` | manifests, MCP launch spec, commands, per-host agent formats |
 | `server/pyproject.toml` | the version every manifest carries |
 

@@ -10,7 +10,8 @@ strong intraday momentum in a market today, to compare a watchlist, or how past 
 
 ## Tools
 
-The `tradefloor` MCP server provides: `quick_direction`, `intraday_scan`, `resolve_symbol`,
+The `tradefloor` MCP server provides: `quick_direction`, `intraday_scan`, `swarm_roster`,
+`swarm_simulate`, `resolve_symbol`,
 `list_markets`, `technical_report`, `direction_forecast`, `fundamentals`, `news`,
 `sentiment_signals`, `macro_context`, `trade_plan`, `scan`, `journal_record`,
 `journal_review`, `settings`.
@@ -28,6 +29,7 @@ Pick one, and follow its skill file in `skills/<name>/SKILL.md`:
 | Full analysis, buy/sell/hold, a trade plan | `analyze` | 12 roles, 17 on deep |
 | Quick "which way is X going" | `direction`, or just the `quick_direction` tool | one tool call |
 | Stocks to trade intraday: before the open, likely big movers; during the session, live momentum | `scout` | 11 roles; `quick` is the scan alone |
+| How the market will react to news; what-if scenarios; who is buying or selling | `swarm` | seed, one persona per group, report |
 | Rank several instruments | `scan` | tools only |
 | How have past calls done | `review` | tools only |
 
@@ -60,6 +62,15 @@ to `tradefloor-runs/scout-<market>/<session>-<time>/`.
 If the host has subagents, each role is a subagent of that name: `tradefloor:<role>` in
 Claude Code, `<role>` in Antigravity. Without subagents (Codex), play each role in turn
 from the skill's `references/<role>.md`.
+
+## The market swarm (`swarm`)
+
+A seed-analyst gathers the events; one crowd-persona per participant group (from
+`swarm_roster`) states its reaction as numbers; `swarm_simulate` runs thousands of simulated
+traders over a thousand worlds, calibrated to the stock's own volatility, and returns the
+baseline, the scenario, the shift and who moved the price; a swarm-reporter writes it up and
+journals it as source `swarm`. What-ifs rerun the personas with an injected event. The user
+can question any group afterwards.
 
 ## Rules for every role
 
