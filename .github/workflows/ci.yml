@@ -1,0 +1,28 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Host files match rules/, roles/ and tools/adapters.py
+        run: python tools/build.py --check
+
+      - name: Tests (offline, synthetic data)
+        run: uv run --project server --group dev pytest -q tests server/tests

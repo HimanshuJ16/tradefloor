@@ -1,0 +1,22 @@
+name: Bug
+description: Something broke or returned a wrong number
+labels: [bug]
+body:
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      description: The exact command or question, with host (Claude Code, Codex, Antigravity, CLI)
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: The tool's JSON or the run folder file that shows it. Remove anything private.

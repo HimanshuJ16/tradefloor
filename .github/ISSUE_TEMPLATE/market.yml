@@ -1,0 +1,15 @@
+name: Market or data request
+description: A market, index universe or data source to add
+labels: [markets]
+body:
+  - type: input
+    id: market
+    attributes:
+      label: Market or source
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Exchange suffix on Yahoo, index name, trading hours, or the source's terms of use

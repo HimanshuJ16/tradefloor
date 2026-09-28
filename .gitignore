@@ -1,0 +1,10 @@
+tradefloor-runs/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.env
+ROADMAP.md

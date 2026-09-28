@@ -1,0 +1,421 @@
+{
+  "market": "nifty 50",
+  "universe": "60 most-traded NSE stocks (approximates the NIFTY 50)",
+  "universe_size": 60,
+  "exchange": "NSE",
+  "currency": "INR",
+  "mode": "premarket",
+  "as_of": "2026-09-27 16:31 IST",
+  "target_session": "2026-09-28 (next weekday; exchange holidays not checked)",
+  "based_on_session": "2026-09-25",
+  "session_close": "15:20",
+  "square_off_by": "15:05",
+  "exchange_delay_minutes": 15,
+  "evidence": {
+    "sessions": 38,
+    "stock_days": 2262,
+    "big_move_definition": "high-low range at least 1.3x the stock's 20-session average range",
+    "base_p_big_move": 0.188,
+    "top_fifth_in_play_p_big_move": 0.3,
+    "strong_day_continuation_rate": 0.44,
+    "read": "Stocks in play yesterday (top fifth) had big moves 30% of sessions, against 19% for the universe. After strong days the next day continued 44% of the time, so the side is decided at the open unless a lean is shown."
+  },
+  "candidates": [
+    {
+      "symbol": "AXISBANK.NS",
+      "p_big_move": 0.331,
+      "lift_vs_universe": 1.76,
+      "p_trend_day": 0.348,
+      "direction": {
+        "lean": null,
+        "p_continuation": 0.441,
+        "n_effective": 114.0,
+        "read": "After strong up days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": 2.47,
+        "close_location": 0.94,
+        "traded_value_vs_avg": 1.4,
+        "range_vs_avg": 1.58
+      },
+      "adr_pct": 1.7,
+      "probabilities": {
+        "in_play_score": 0.873,
+        "bucket": "10 of 10",
+        "p_big_move": 0.331,
+        "base_p_big_move": 0.188,
+        "lift": 1.76,
+        "p_trend_day": 0.348,
+        "base_p_trend_day": 0.304,
+        "n": 227,
+        "n_effective": 111.0,
+        "direction": {
+          "lean": null,
+          "p_continuation": 0.441,
+          "n_effective": 114.0,
+          "read": "After strong up days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 10.37 (half the average daily range), or the stock gaps beyond yesterday's high 1224 / low 1192 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 1224.5,
+          "prev_low": 1191.7,
+          "prev_close": 1222.4
+        },
+        "typical_opening_range": 6.85,
+        "typical_opening_range_pct": 0.56,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "PAYTM.NS",
+      "p_big_move": 0.234,
+      "lift_vs_universe": 1.24,
+      "p_trend_day": 0.348,
+      "direction": {
+        "lean": null,
+        "p_continuation": 0.441,
+        "n_effective": 114.0,
+        "read": "After strong down days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": -3.52,
+        "close_location": 0.17,
+        "traded_value_vs_avg": 1.29,
+        "range_vs_avg": 1.51
+      },
+      "adr_pct": 3.49,
+      "probabilities": {
+        "in_play_score": 0.851,
+        "bucket": "9 of 10",
+        "p_big_move": 0.234,
+        "base_p_big_move": 0.188,
+        "lift": 1.24,
+        "p_trend_day": 0.348,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 114.0,
+        "direction": {
+          "lean": null,
+          "p_continuation": 0.441,
+          "n_effective": 114.0,
+          "read": "After strong down days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 29.17 (half the average daily range), or the stock gaps beyond yesterday's high 1747 / low 1659 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 1747.0,
+          "prev_low": 1658.8,
+          "prev_close": 1674.0
+        },
+        "typical_opening_range": 33.1,
+        "typical_opening_range_pct": 1.98,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "KOTAKBANK.NS",
+      "p_big_move": 0.234,
+      "lift_vs_universe": 1.24,
+      "p_trend_day": 0.348,
+      "direction": {
+        "lean": null,
+        "read": "No strong move yesterday: decide the side at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": -0.71,
+        "close_location": 0.54,
+        "traded_value_vs_avg": 1.47,
+        "range_vs_avg": 1.37
+      },
+      "adr_pct": 1.54,
+      "probabilities": {
+        "in_play_score": 0.848,
+        "bucket": "9 of 10",
+        "p_big_move": 0.234,
+        "base_p_big_move": 0.188,
+        "lift": 1.24,
+        "p_trend_day": 0.348,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 114.0,
+        "direction": {
+          "lean": null,
+          "read": "No strong move yesterday: decide the side at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 3.105 (half the average daily range), or the stock gaps beyond yesterday's high 408 / low 399.5 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 407.95,
+          "prev_low": 399.45,
+          "prev_close": 404.0
+        },
+        "typical_opening_range": 2.425,
+        "typical_opening_range_pct": 0.6,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "MEESHO.NS",
+      "p_big_move": 0.234,
+      "lift_vs_universe": 1.24,
+      "p_trend_day": 0.348,
+      "direction": {
+        "lean": null,
+        "p_continuation": 0.441,
+        "n_effective": 114.0,
+        "read": "After strong down days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": -5.26,
+        "close_location": 0.07,
+        "traded_value_vs_avg": 1.24,
+        "range_vs_avg": 1.54
+      },
+      "adr_pct": 3.87,
+      "probabilities": {
+        "in_play_score": 0.846,
+        "bucket": "9 of 10",
+        "p_big_move": 0.234,
+        "base_p_big_move": 0.188,
+        "lift": 1.24,
+        "p_trend_day": 0.348,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 114.0,
+        "direction": {
+          "lean": null,
+          "p_continuation": 0.441,
+          "n_effective": 114.0,
+          "read": "After strong down days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 4.196 (half the average daily range), or the stock gaps beyond yesterday's high 229.1 / low 216.2 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 229.11,
+          "prev_low": 216.2,
+          "prev_close": 217.06
+        },
+        "typical_opening_range": 3.65,
+        "typical_opening_range_pct": 1.68,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "MCX.NS",
+      "p_big_move": 0.234,
+      "lift_vs_universe": 1.24,
+      "p_trend_day": 0.348,
+      "direction": {
+        "lean": null,
+        "p_continuation": 0.441,
+        "n_effective": 114.0,
+        "read": "After strong down days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": -4.42,
+        "close_location": 0.08,
+        "traded_value_vs_avg": 1.18,
+        "range_vs_avg": 1.61
+      },
+      "adr_pct": 3.14,
+      "probabilities": {
+        "in_play_score": 0.843,
+        "bucket": "9 of 10",
+        "p_big_move": 0.234,
+        "base_p_big_move": 0.188,
+        "lift": 1.24,
+        "p_trend_day": 0.348,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 114.0,
+        "direction": {
+          "lean": null,
+          "p_continuation": 0.441,
+          "n_effective": 114.0,
+          "read": "After strong down days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 52.14 (half the average daily range), or the stock gaps beyond yesterday's high 3479 / low 3311 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 3478.7,
+          "prev_low": 3311.1001,
+          "prev_close": 3324.8999
+        },
+        "typical_opening_range": 56.85,
+        "typical_opening_range_pct": 1.71,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "ICICIBANK.NS",
+      "p_big_move": 0.234,
+      "lift_vs_universe": 1.24,
+      "p_trend_day": 0.348,
+      "direction": {
+        "lean": null,
+        "read": "No strong move yesterday: decide the side at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": -0.39,
+        "close_location": 0.39,
+        "traded_value_vs_avg": 1.14,
+        "range_vs_avg": 1.22
+      },
+      "adr_pct": 1.36,
+      "probabilities": {
+        "in_play_score": 0.769,
+        "bucket": "9 of 10",
+        "p_big_move": 0.234,
+        "base_p_big_move": 0.188,
+        "lift": 1.24,
+        "p_trend_day": 0.348,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 114.0,
+        "direction": {
+          "lean": null,
+          "read": "No strong move yesterday: decide the side at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 9.035 (half the average daily range), or the stock gaps beyond yesterday's high 1340 / low 1318 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 1340.2,
+          "prev_low": 1318.1,
+          "prev_close": 1326.8
+        },
+        "typical_opening_range": 9.4,
+        "typical_opening_range_pct": 0.71,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "M&M.NS",
+      "p_big_move": 0.234,
+      "lift_vs_universe": 1.24,
+      "p_trend_day": 0.3,
+      "direction": {
+        "lean": null,
+        "p_continuation": 0.441,
+        "n_effective": 114.0,
+        "read": "After strong up days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": 1.87,
+        "close_location": 0.87,
+        "traded_value_vs_avg": 0.98,
+        "range_vs_avg": 1.34
+      },
+      "adr_pct": 1.92,
+      "probabilities": {
+        "in_play_score": 0.744,
+        "bucket": "8 of 10",
+        "p_big_move": 0.234,
+        "base_p_big_move": 0.188,
+        "lift": 1.24,
+        "p_trend_day": 0.3,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 114.0,
+        "direction": {
+          "lean": null,
+          "p_continuation": 0.441,
+          "n_effective": 114.0,
+          "read": "After strong up days, the next day continued 44% of the time here, within noise of a coin flip. Decide at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 29.11 (half the average daily range), or the stock gaps beyond yesterday's high 3045 / low 2967 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 3045.0,
+          "prev_low": 2967.1001,
+          "prev_close": 3035.0
+        },
+        "typical_opening_range": 23.25,
+        "typical_opening_range_pct": 0.77,
+        "time_stop": "Square off by 15:05"
+      }
+    },
+    {
+      "symbol": "TCS.NS",
+      "p_big_move": 0.218,
+      "lift_vs_universe": 1.16,
+      "p_trend_day": 0.3,
+      "direction": {
+        "lean": null,
+        "read": "No strong move yesterday: decide the side at the open."
+      },
+      "yesterday": {
+        "session": "2026-09-25",
+        "move_pct": 0.68,
+        "close_location": 0.84,
+        "traded_value_vs_avg": 1.0,
+        "range_vs_avg": 0.98
+      },
+      "adr_pct": 2.47,
+      "probabilities": {
+        "in_play_score": 0.64,
+        "bucket": "7 of 10",
+        "p_big_move": 0.218,
+        "base_p_big_move": 0.188,
+        "lift": 1.16,
+        "p_trend_day": 0.3,
+        "base_p_trend_day": 0.304,
+        "n": 226,
+        "n_effective": 111.0,
+        "direction": {
+          "lean": null,
+          "read": "No strong move yesterday: decide the side at the open."
+        }
+      },
+      "plan": {
+        "rule": "Wait for the first 15 minutes. Long on a break above the opening-range high, stop at the opening-range low; short on a break below the low, stop at the high. Targets: 1x and 2x the opening range from the trigger.",
+        "prefer": "either: the first clean break with volume decides",
+        "skip_if": "the opening range is wider than 25.75 (half the average daily range), or the stock gaps beyond yesterday's high 2090 / low 2040 and reverses into the range",
+        "reference_levels": {
+          "prev_high": 2090.1001,
+          "prev_low": 2039.8,
+          "prev_close": 2082.0
+        },
+        "typical_opening_range": 32.3499,
+        "typical_opening_range_pct": 1.55,
+        "time_stop": "Square off by 15:05"
+      }
+    }
+  ],
+  "market_note": "India: intraday (MIS) positions are squared off by the broker before the close, typically 15:15 to 15:20 IST.",
+  "next_step": "After the first 15 minutes of the session, run the live scan (same command) to see which side broke, with volume and VWAP.",
+  "caveats": [
+    "p_big_move is how often stocks this in-play had a big move in this universe over the past sessions; it says nothing about direction.",
+    "Pre-market gaps are not seen here (Yahoo has no pre-open data for most exchanges); a large gap changes the plan.",
+    "Exchange holidays are not checked."
+  ],
+  "disclaimer": "Not investment advice. Public data, possibly delayed; verify before acting."
+}

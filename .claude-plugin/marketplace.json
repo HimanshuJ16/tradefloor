@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "tradefloor",
+  "description": "tradefloor: a multi-agent trading desk for any market.",
+  "owner": {
+    "name": "Himanshu Jangir",
+    "url": "https://github.com/HimanshuJ16"
+  },
+  "plugins": [
+    {
+      "name": "tradefloor",
+      "source": "./",
+      "description": "A trading desk for any market: analysts, bull/bear debate, trader, risk committee and portfolio manager over deterministic, point-in-time market data. Direction with calibrated probabilities, a sized trade plan, and a journal that scores every call.",
+      "category": "finance",
+      "tags": [
+        "trading",
+        "stocks",
+        "indices",
+        "multi-agent",
+        "global-markets"
+      ]
+    }
+  ]
+}

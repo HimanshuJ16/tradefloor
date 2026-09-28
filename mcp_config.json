@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "tradefloor": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/HimanshuJ16/tradefloor@v0.1.0#subdirectory=server",
+        "tradefloor-mcp"
+      ]
+    }
+  }
+}

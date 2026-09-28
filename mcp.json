@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "tradefloor": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--project",
+        "${PLUGIN_ROOT}/server",
+        "tradefloor-mcp"
+      ]
+    }
+  }
+}

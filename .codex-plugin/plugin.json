@@ -1,0 +1,42 @@
+{
+  "name": "tradefloor",
+  "version": "0.1.0",
+  "description": "A trading desk for any market: analysts, bull/bear debate, trader, risk committee and portfolio manager over deterministic, point-in-time market data. Direction with calibrated probabilities, a sized trade plan, and a journal that scores every call.",
+  "author": {
+    "name": "Himanshu Jangir",
+    "url": "https://github.com/HimanshuJ16"
+  },
+  "homepage": "https://github.com/HimanshuJ16/tradefloor",
+  "repository": "https://github.com/HimanshuJ16/tradefloor",
+  "license": "MIT",
+  "keywords": [
+    "trading",
+    "stocks",
+    "indices",
+    "multi-agent",
+    "mcp",
+    "global-markets",
+    "technical-analysis",
+    "research"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json",
+  "interface": {
+    "displayName": "tradefloor",
+    "shortDescription": "Trading desk for any market",
+    "longDescription": "Analysts, a bull/bear debate, a trader, a risk committee and a portfolio manager over point-in-time market data for any exchange. Direction with probabilities, a sized plan, and a scored journal.",
+    "developerName": "Himanshu Jangir",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills",
+      "MCP"
+    ],
+    "websiteURL": "https://github.com/HimanshuJ16/tradefloor",
+    "defaultPrompt": [
+      "Where is the Nifty 50 heading this month?",
+      "Which Nifty 50 stocks have strong intraday momentum right now?",
+      "How have my past tradefloor calls done?"
+    ],
+    "brandColor": "#0B6E4F"
+  }
+}
