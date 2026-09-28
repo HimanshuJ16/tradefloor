@@ -98,7 +98,7 @@ def test_antigravity_install_merges_and_removes(tmp_path):
     install.run("antigravity", tmp_path, add=True, dry=False)
     data = json.loads(cfg.read_text())
     assert data["keep"] == 1 and "other" in data["mcpServers"]
-    assert data["mcpServers"]["tradefloor"]["args"][-1] == "tradefloor-mcp"
+    assert data["mcpServers"]["tradefloor"]["args"][-2:] == ["-m", "tradefloor.server"]
     assert (tmp_path / ".agents" / "mcp_config.json.tradefloor-backup").exists()
     rules = (tmp_path / ".agents/rules/tradefloor.md").read_text(encoding="utf-8")
     assert f"`{install.SERVER_ROOT}/skills/" in rules  # paths made absolute

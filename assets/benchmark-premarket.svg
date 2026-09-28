@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="480" viewBox="0 0 860 480" role="img" aria-label="Pre-market scan: share of stocks that made a big move that session">
+<rect width="860" height="480" rx="12" fill="#0d1117"/>
+<text x="430.0" y="34" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#e6edf3">Pre-market scan: share of stocks that made a big move that session</text>
+<text x="430.0" y="56" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#8b949e">walk-forward, 15 sessions per market (2026-09-04 to 2026-09-25), top 5 picks a day chosen from earlier data only</text>
+<rect x="290.0" y="70" width="12" height="12" rx="2" fill="#8b949e"/>
+<text x="308.0" y="81" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#e6edf3">rest of the market</text>
+<rect x="460.0" y="70" width="12" height="12" rx="2" fill="#3fb950"/>
+<text x="478.0" y="81" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#e6edf3">tradefloor's top 5 picks</text>
+<line x1="70" y1="396.0" x2="830" y2="396.0" stroke="#30363d" stroke-width="1"/>
+<text x="60" y="400.0" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">0%</text>
+<line x1="70" y1="336.0" x2="830" y2="336.0" stroke="#30363d" stroke-width="1"/>
+<text x="60" y="340.0" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">10%</text>
+<line x1="70" y1="276.0" x2="830" y2="276.0" stroke="#30363d" stroke-width="1"/>
+<text x="60" y="280.0" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">20%</text>
+<line x1="70" y1="216.0" x2="830" y2="216.0" stroke="#30363d" stroke-width="1"/>
+<text x="60" y="220.0" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">30%</text>
+<line x1="70" y1="156.0" x2="830" y2="156.0" stroke="#30363d" stroke-width="1"/>
+<text x="60" y="160.0" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">40%</text>
+<line x1="70" y1="96.0" x2="830" y2="96.0" stroke="#30363d" stroke-width="1"/>
+<text x="60" y="100.0" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">50%</text>
+<rect x="126.7" y="281.6" width="64.0" height="114.4" rx="3" fill="#8b949e"/>
+<text x="158.7" y="273.6" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">19%</text>
+<text x="158.7" y="414.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">103/540</text>
+<rect x="202.7" y="220.0" width="64.0" height="176.0" rx="3" fill="#3fb950"/>
+<text x="234.7" y="212.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">29%</text>
+<text x="234.7" y="414.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">22/75</text>
+<text x="196.7" y="438.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3">NIFTY 50</text>
+<rect x="380.0" y="295.4" width="64.0" height="100.6" rx="3" fill="#8b949e"/>
+<text x="412.0" y="287.4" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">17%</text>
+<text x="412.0" y="414.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">161/960</text>
+<rect x="456.0" y="204.0" width="64.0" height="192.0" rx="3" fill="#3fb950"/>
+<text x="488.0" y="196.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">32%</text>
+<text x="488.0" y="414.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">24/75</text>
+<text x="450.0" y="438.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3">S&amp;P 500</text>
+<rect x="633.3" y="264.1" width="64.0" height="131.9" rx="3" fill="#8b949e"/>
+<text x="665.3" y="256.1" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">22%</text>
+<text x="665.3" y="414.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">122/555</text>
+<rect x="709.3" y="220.0" width="64.0" height="176.0" rx="3" fill="#3fb950"/>
+<text x="741.3" y="212.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">29%</text>
+<text x="741.3" y="414.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">22/75</text>
+<text x="703.3" y="438.0" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3">DAX</text>
+<text x="430.0" y="466" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#8b949e">big move: session range at least 1.3x the stock's 20-session average. Generated by benchmarks/charts.py from 2026-09-28-premarket.json.</text>
+</svg>

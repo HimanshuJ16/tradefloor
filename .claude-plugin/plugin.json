@@ -51,7 +51,9 @@
         "--quiet",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/server",
-        "tradefloor-mcp"
+        "python",
+        "-m",
+        "tradefloor.server"
       ],
       "env": {
         "TRADEFLOOR_DEFAULT_MARKET": "${user_config.default_market}",

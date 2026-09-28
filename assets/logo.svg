@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 380 400" width="100%" height="100%" role="img" aria-label="tradefloor - an order ticket that quotes odds over a candlestick chart">
+  <defs>
+    <style>
+      .sticker-cut { fill: #ffffff; stroke: #ffffff; stroke-width: 22; stroke-linejoin: round; }
+      .ink { stroke: #0d1117; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .paper { fill: #ffffff; stroke: #0d1117; stroke-width: 3.5; stroke-linejoin: round; }
+      .mono-heavy { white-space: pre; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-weight: 900; fill: #0d1117; }
+      .mono { white-space: pre; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-weight: 700; fill: #555555; }
+    </style>
+  </defs>
+
+  <!-- die-cut sticker backing -->
+  <path class="sticker-cut" d="M 58 40 L 322 40 Q 340 40 340 58 L 340 362 Q 340 380 322 380 L 58 380 Q 40 380 40 362 L 40 58 Q 40 40 58 40 Z"/>
+
+  <!-- candlestick chart, behind the ticket -->
+  <g class="ink" stroke-width="4">
+    <line x1="92" y1="120" x2="92" y2="214"/>
+    <rect x="80" y="138" width="24" height="56" fill="#ffffff"/>
+    <line x1="138" y1="96" x2="138" y2="196"/>
+    <rect x="126" y="112" width="24" height="64" fill="#0d1117"/>
+    <line x1="184" y1="84" x2="184" y2="170"/>
+    <rect x="172" y="98" width="24" height="50" fill="#ffffff"/>
+    <line x1="230" y1="60" x2="230" y2="150"/>
+    <rect x="218" y="74" width="24" height="54" fill="#3fb950" stroke="#0d1117"/>
+  </g>
+
+  <!-- order ticket, slightly tilted -->
+  <g transform="rotate(-4 200 270)">
+    <path class="paper" d="M 96 184 L 316 184 L 316 336 L 305 344 L 294 336 L 283 344 L 272 336 L 261 344 L 250 336 L 239 344 L 228 336 L 217 344 L 206 336 L 195 344 L 184 336 L 173 344 L 162 336 L 151 344 L 140 336 L 129 344 L 118 336 L 107 344 L 96 336 Z"/>
+    <text x="114" y="216" class="mono" font-size="15">ODDS, NOT OPINIONS</text>
+    <line class="ink" x1="112" y1="228" x2="300" y2="228" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="114" y="256" class="mono-heavy" font-size="20">p(up)   0.57</text>
+    <text x="114" y="282" class="mono-heavy" font-size="20">p(down) 0.23</text>
+    <text x="114" y="310" class="mono" font-size="15">scored: pending</text>
+  </g>
+
+</svg>

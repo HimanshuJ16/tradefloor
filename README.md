@@ -1,38 +1,166 @@
-# tradefloor
+<p align="center">
+  <img src="assets/logo.svg" width="260" alt="tradefloor">
+</p>
 
-**A multi-agent trading desk for Claude Code, Codex and Antigravity that quotes odds, not
-opinions, and keeps score of every call.**
+<h1 align="center">tradefloor</h1>
 
-Analysts research, a bull and a bear argue, a manager judges, a trader plans, a risk
-committee pushes back, a portfolio manager decides: the
-[TradingAgents](https://github.com/TauricResearch/TradingAgents) design, rebuilt as a
-plugin for the coding agent you already use. Three things are different:
+<p align="center">
+  <em>A multi-agent trading desk for coding agents. It quotes odds, not opinions, and keeps score.</em>
+</p>
 
-1. **The numbers come from code, the odds come from history.** Indicators, probabilities,
-   ranges and position sizes are computed in Python. A probability is how often *this*
-   instrument actually went up, down or sideways after setups like today's, not a model's
-   confidence. The agents may move it by at most 0.10, with a written reason, and every
-   figure they use must cite the tool that produced it; a manager agent strikes claims whose
-   numbers do not match.
-2. **It keeps score.** Every call goes into a journal and is graded once its horizon passes:
-   hit rate and Brier score against the base rate for swing calls, R multiples on real
-   5-minute bars for intraday calls. You find out whether it has skill instead of being
-   told it does.
-3. **It works before the open, during the session, and outside the US.** A pre-market scan
-   finds the stocks most likely to make a big move today; a live scan finds volume-backed
-   momentum; 41 exchanges (NSE, BSE, LSE, Xetra, Tokyo, Hong Kong, Shanghai, ASX, TSX, B3
-   and more) with local universes, benchmarks and news. No API keys.
+<p align="center">
+  <img src="https://img.shields.io/github/stars/HimanshuJ16/tradefloor?style=flat-square&color=111111&label=stars&cacheSeconds=3600" alt="Stars">
+  <img src="https://img.shields.io/badge/hosts-Claude%20Code%20%2B%20Codex%20%2B%20Antigravity-111111?style=flat-square" alt="Claude Code, Codex, Antigravity">
+  <img src="https://img.shields.io/badge/markets-41%20exchanges-111111?style=flat-square" alt="41 exchanges">
+  <img src="https://img.shields.io/badge/API%20keys-none-111111?style=flat-square" alt="No API keys">
+  <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
+</p>
 
-> Not investment advice. Public data, delayed on many exchanges. It never places orders.
+<!-- numbers:start -->
+<p align="center">
+  <strong>Before the open it finds the day's big movers more often than chance. It does not know which way they will go, and it says so.</strong><br>
+  <sub>Walk-forward over 15 sessions each of NIFTY 50, S&amp;P 500 and DAX stocks: its top 5 picks made big moves 29 to 32% of the time against 17 to 22% for the rest. Method, raw results and limits in the <a href="benchmarks/results/2026-09-28-premarket.md">pre-market writeup</a>. Not investment advice; it never places orders.</sub>
+</p>
+<!-- numbers:end -->
 
-![The analyze desk: data tools feed four analysts; a bull and a bear debate; a research manager audits citations and adjusts the quant odds; a trader plans; a risk committee reviews; a portfolio manager decides; the journal grades the call later](assets/analyze-desk.svg)
+---
 
-## What it looks like
+tradefloor is a plugin for Claude Code, Codex and Antigravity that runs a trading desk:
+analysts research, a bull and a bear argue, a manager judges, a trader plans, a risk
+committee pushes back, and a portfolio manager decides. The design is
+[TradingAgents](https://github.com/TauricResearch/TradingAgents); three things differ:
 
-![The scout desk: a market universe feeds either the pre-market big-move scan or the live momentum scan; tape, catalyst and regime analysts; an advocate and a skeptic debate; a desk head picks; trader, risk committee and portfolio manager; the journal grades each pick by the close](assets/scout-desk.svg)
+- Every number comes from Python, not from the model. A probability is how often this
+  instrument actually went up, down or sideways after setups like today's. The agents can
+  move it by at most 0.10, with a written reason, and a manager agent strikes any figure it
+  cannot trace to a tool.
+- Every call is written to a journal and graded once its horizon passes, so you learn
+  whether it has skill instead of being told.
+- It works before the open and during the session, on 41 exchanges including India's NSE,
+  with no API keys.
 
-`/tradefloor:scout nifty 50`, run on a Sunday for Monday's session: eleven agents
-produced this watchlist ([full run](examples/scout-nifty-50-premarket-2026-09-28/)):
+It does not trade, does not predict prices, and cannot make a weak signal strong. It tells
+you how strong the signal was, and later, whether it was right.
+
+## Trust boundary
+
+tradefloor is local code: an MCP server in Python and agent definitions in Markdown. It
+needs no API keys and stores none. The server makes outbound requests only to Yahoo Finance
+(through yfinance), Google News RSS, and Reddit when you enable it; it opens no ports.
+Settings and the journal are plain JSON in `~/.tradefloor/`. On Claude Code the agent
+definitions deny shell and file-edit tools; agents only write their own report files.
+Headlines are untrusted text: every role that reads them is told they are data, not
+instructions, but a crafted headline is still something a model reads. Read the run folder
+before acting on it. The data is unofficial and delayed on many exchanges; every scan
+reports by how much. Details: [SECURITY.md](SECURITY.md).
+
+You know him. Twenty years on the floor. You bring him a tip from a group chat. He asks
+what the stock did the last forty times the chart looked like this. You say this time is
+different. He says forty-one percent, and writes your trade on a ticket with a stop on it.
+Three weeks later he pulls the ticket out and tells you how it went.
+
+He didn't say no. He said forty-one percent.
+
+tradefloor puts him inside your AI agent.
+
+## Before / after
+
+Monday 2026-09-28, during the NSE session. Same prompt, same machine, run side by side in
+headless Claude Code: *"Where is the NIFTY 50 heading over the next month? Give me a
+direction and a trade plan."* The plain run had web search. Both replies verbatim, trimmed:
+
+Without tradefloor (78 seconds):
+
+> **My call: bearish-to-sideways for the next 2–3 weeks, with a good chance of a bounce off
+> the 22,400–22,600 zone before month-end.** [...] I'd put roughly 55% on the market going
+> lower or flat, and I have low confidence in that.
+>
+> - **Bearish (~40%):** [...]
+> - **Range, then bounce (~40%):** [...]
+> - **Sharp rally (~20%):** [...]
+>
+> Several figures (moving averages, flows, crude, the rupee) come from third-party market
+> blogs I couldn't cross-check against NSE data.
+
+With tradefloor (32 seconds):
+
+> **NIFTY 50: a slight lean up over the next month, but the model's confidence is low.**
+>
+> | | Up | Down | Flat |
+> |---|---|---|---|
+> | Model probability | **57.5%** | 23.3% | 19.3% |
+> | Usual rate for NIFTY | 53.0% | 27.1% | 20.0% |
+>
+> The model found 524 similar past setups, which count as only about 25 independent ones.
+> After them, NIFTY rose 61% of the time [...] The edge over the usual rate is only about
+> 4.5 points.
+>
+> I've logged this call in the journal (ID `5ebfe16f9f24`), so it can be scored against
+> what actually happens after 21 trading days.
+
+The first reply is careful and well sourced, and its odds came from nowhere: 55, 40, 40,
+20, with no count behind them and nothing that will check them. The second counted, said
+how little the count was worth, and wrote the call down. They lean opposite ways; after 21
+trading days `/tradefloor:review` will say which one the market agreed with. Full replies:
+[examples/before-after-2026-09-28/](examples/before-after-2026-09-28/).
+
+## Numbers
+
+The honest test for a pre-market scan is to run it on days it has not seen. For each of the
+last 15 completed sessions, the model saw only earlier sessions, picked its top 5 stocks,
+and was graded on what those stocks did that day against every other liquid stock in the
+market.
+
+<p align="center">
+  <img src="assets/benchmark-premarket.svg" width="860" alt="Pre-market scan, 15 sessions per market: big-move rate for the top 5 picks against the rest of the market. NIFTY 50: 29% (22 of 75) against 19% (103 of 540). S&P 500: 32% (24 of 75) against 17% (161 of 960). DAX: 29% (22 of 75) against 22% (122 of 555).">
+</p>
+
+| 15 sessions per market, top 5 a day | NIFTY 50 | S&P 500 | DAX |
+|---|--:|--:|--:|
+| big move (range ≥ 1.3× normal): **picks** | **22 / 75 (29%)** | **24 / 75 (32%)** | **22 / 75 (29%)** |
+| big move: rest of the market | 103 / 540 (19%) | 161 / 960 (17%) | 122 / 555 (22%) |
+| clean trend day: picks / rest | 33% / 32% | 31% / 28% | 31% / 27% |
+| opening-range trade, avg R: picks | +0.19 (38 trades) | 0.00 (17) | +0.15 (48) |
+| opening-range trade, avg R: rest | +0.06 (346) | −0.11 (431) | 0.00 (414) |
+
+It finds bigger movers in every market. It does not find cleaner trends, and the
+opening-range column leans the right way on too few trades to call an edge.
+
+What it looked for and did not find, reported the same way:
+
+| Question | Answer | Sample |
+|---|---|---|
+| Does a strong day continue the next day? | 44% (NIFTY 50), 49% (S&P 500), 49% (DAX): a coin flip | ~40 sessions per market |
+| Do the strongest live intraday moves follow through by the close? | NIFTY 50: 37% follow, 42% fade; S&P 500: 35% against 40% | ~53 sessions |
+| Does an opening gap with an overnight company filing continue? | 51% of the time; 58% for big gaps | 283 gaps with news, 62 big; NSE |
+
+So the pre-market scan shows a direction only when the data clears two standard errors
+from 50%, which it usually does not, and the live desk mostly stands aside.
+
+**Read these numbers with the limits attached.** One period (September 2026), 15 sessions
+and 75 picks per market, Yahoo's unofficial 5-minute data, today's most-traded list applied
+to past sessions, no costs or slippage in the trade column, and model settings chosen on the
+same ~60-day window, so not a clean out-of-sample test. The chart is generated from the
+[results file](benchmarks/results/2026-09-28-premarket.json) by
+[`benchmarks/charts.py`](benchmarks/charts.py); nothing in it was drawn by hand. Rerun:
+`uv run python server/scripts/eval_premarket.py "nifty 50" "s&p 500" dax`.
+
+## How the desk works
+
+For one instrument, `/tradefloor:analyze`:
+
+<p align="center">
+  <img src="assets/analyze-desk.svg" width="900" alt="The analyze desk: data tools feed four analysts; a bull and a bear debate; a research manager audits citations and adjusts the quant odds by at most 0.10; a trader plans; a risk committee of three reviews; a portfolio manager decides; the journal grades the call after its horizon">
+</p>
+
+For a whole market, before the open or during the session, `/tradefloor:scout`:
+
+<p align="center">
+  <img src="assets/scout-desk.svg" width="900" alt="The scout desk: a market universe feeds either the pre-market big-move scan or the live momentum scan; tape, catalyst and regime analysts; an advocate and a skeptic debate; a desk head picks; trader, risk committee and portfolio manager; the journal grades each pick by the close">
+</p>
+
+What a morning looks like: `/tradefloor:scout nifty 50`, run on Sunday 2026-09-27 for
+Monday's session, eleven agents, from the [run folder](examples/scout-nifty-50-premarket-2026-09-28/):
 
 ```
 Day: selective. Regime: range. Continuation after a strong day is 44% (within noise of a
@@ -46,144 +174,164 @@ Dropped: AXISBANK (no catalyst, fights the daily downtrend), MEESHO (all three r
 rejected), PAYTM (its usual opening range is wider than its own skip cap).
 ```
 
-The same desk, replaying 11:15 IST on 2026-09-22, picked one live trade from 60 stocks:
-**INFY short at half size**, because it was the only candidate where the down-trending
-day, the daily trend and the calibrated edge agreed. The journal graded it on that session's
-real bars: *not triggered*, 0R. ([full run](examples/scout-nifty-50-live-replay-2026-09-22/))
-
-## Measured, not claimed
-
-**Pre-market: can it find today's big movers before the open?** Walk-forward over the last
-15 sessions, each day's top 5 chosen using only earlier data, against the rest of the
-market ([`eval_premarket.py`](server/scripts/eval_premarket.py)):
-
-| Market | Big move (range ≥ 1.3× normal): picks | Rest | Opening-range trade, avg R: picks / rest |
-|---|---|---|---|
-| NIFTY 50 | **29%** | 19% | +0.15 (38 trades) / +0.06 |
-| S&P 500 | **32%** | 17% | 0.00 (17 trades) / −0.11 |
-| DAX | **29%** | 22% | +0.15 (48 trades) / 0.00 |
-
-The big-move lift held in all three markets. The trade column leans the same way on too
-few trades to call an edge.
-
-**What it could not find, and says so:**
-- Direction before the open. After strong days, the next day continued 44% (NIFTY) to 49%
-  (S&P 500, DAX) of the time: a coin flip. The scan shows a side only when the data clears
-  two standard errors from 50%, which it usually does not.
-- Live momentum follow-through. Over ~53 sessions the strongest live setups followed through
-  37% and faded 42% in the NIFTY 50, 35% against 40% in the S&P 500. On such days the desk
-  stands aside; in the replay above it took one trade out of sixty stocks.
-- Overnight news. Across 1,127 NSE opening gaps, gaps with a company filing overnight
-  continued 51% of the time after the open, 58% for big ones (n=62, not yet significant).
-
-All figures were measured on 2026-09-27 over the preceding ~60 days of Yahoo data; rerun the
-scripts to update them.
+Each role writes a report file into `tradefloor-runs/...` and the next role reads the file,
+not the chat, so every step can be inspected. Real run folders, unedited:
+[examples/](examples/). The maths: [docs/architecture.md](docs/architecture.md). What
+changed from the TradingAgents paper and why: [docs/research-notes.md](docs/research-notes.md).
 
 ## Install
 
-Requires [uv](https://docs.astral.sh/uv/). No API keys.
+Every route needs [uv](https://docs.astral.sh/uv/) on your PATH. The first start installs
+the Python dependencies, about a minute once.
 
-**Claude Code**
+### Claude Code
+
 ```
 /plugin marketplace add HimanshuJ16/tradefloor
+```
+```
 /plugin install tradefloor@tradefloor
 ```
-It asks for your home market, capital and risk; change them later in `/config`.
 
-**Codex**
+It asks for your home market, capital and risk. Change them later in `/config`.
+
+### Codex
+
 ```bash
 codex plugin marketplace add HimanshuJ16/tradefloor
 codex plugin add tradefloor@tradefloor
 ```
 
-**Antigravity** (from a checkout)
+Skills are invoked with `@`: `@scout nifty 50`, `@analyze RELIANCE.NS 1m`. Codex has no
+plugin subagents, so one model plays the desk roles in turn.
+
+### Antigravity
+
 ```bash
 git clone https://github.com/HimanshuJ16/tradefloor
 python tradefloor/tools/install.py antigravity --project /path/to/your/project
 ```
 
-**Any terminal**
+`--global` for every project, `--dry-run` to preview, `--remove` to undo. Existing config is
+merged and backed up. In testing, Antigravity answered with the right numbers but skipped
+the journal step; see [agent portability](docs/agent-portability.md).
+
+### Any terminal
+
 ```bash
 uv run --project tradefloor/server tradefloor intraday_scan "market=nifty 50"
 ```
 
-The first run installs the Python dependencies (about a minute).
+Every tool is also a CLI command with the same JSON output; `tradefloor list` shows them.
 
-## Use
+That was it. He would tell you if it weren't.
 
-```
-/tradefloor:scout nifty 50                       # before 9:15: likely big movers; after: live momentum
-/tradefloor:scout s&p 500 quick                  # scan only, no agents, ~20 s
-/tradefloor:scout nifty 50 at "2026-09-25 09:00" # replay any moment in the last ~55 days
-/tradefloor:analyze RELIANCE.NS 1m               # full 12-agent desk on one instrument
-/tradefloor:direction nikkei 1w                  # quant only, ~30 s
-/tradefloor:scan AAPL MSFT INFY.NS SAP.DE 1m     # rank a watchlist
-/tradefloor:review                               # how have the calls done?
-```
+### Configuration
 
-Or ask in plain words: "which NIFTY stocks could move big today?". Codex uses `@scout`,
-`@analyze`. Markets for `scout`: `nifty 50`, `bank nifty`, `s&p 500`, `nasdaq 100`, `dax`,
+None required. Claude Code asks when you enable the plugin. Elsewhere, tell the agent
+"set my home market to NSE, capital to 500000, intraday risk to 0.5"; it saves
+`~/.tradefloor/config.json`, which every host shares. Environment variables
+(`TRADEFLOOR_DEFAULT_MARKET`, `TRADEFLOOR_CAPITAL`, and so on) override the file.
+
+### What it costs
+
+`/tradefloor:direction`, `/tradefloor:scan` and `scout ... quick` use no agents: one tool
+call, seconds. A full desk is 11 to 12 subagent calls and took 9 to 12 minutes in testing;
+analysts and debaters run on Sonnet, judges on your session model. Token cost has not been
+measured.
+
+### Uninstall
+
+| Host | Command |
+|------|---------|
+| Claude Code | `/plugin remove tradefloor` |
+| Codex | `codex plugin remove tradefloor` |
+| Antigravity | `python tools/install.py antigravity --project <dir> --remove` |
+
+That removes the plugin. Your settings and journal stay in `~/.tradefloor/`; delete the
+folder to remove them.
+
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `/tradefloor:scout <market>` | Before the open: stocks likely to make a big move today, with two-sided opening-range plans. During the session: live momentum picks. Full desk. |
+| `/tradefloor:scout <market> quick` | The scan alone, no agents. |
+| `/tradefloor:analyze <symbol> [horizon]` | The full desk on one stock, index, future, FX pair or coin: direction, odds, range, sized plan. |
+| `/tradefloor:direction <symbol> [horizon]` | The quant model alone. |
+| `/tradefloor:scan <symbols...>` | Rank a watchlist by how unusual today's setup is for each. |
+| `/tradefloor:review [symbol]` | Grade past calls against what the market did. |
+
+Markets for `scout`: `nifty 50`, `bank nifty`, `s&p 500`, `nasdaq 100`, `dax`,
 `ftse 100`, `japan`, `hong kong`, `china`, `korea`, `taiwan`, `asx 200`, `tsx`, `brazil`
-and more, or your own comma-separated list. Every command:
-[docs/commands.md](docs/commands.md).
+and more, or a comma-separated list. Symbols use Yahoo's suffixes (`RELIANCE.NS`, `7203.T`,
+`SAP.DE`) or plain index names. Codex uses `@scout`, `@analyze`; plain questions work on
+every host. Every command and option: [docs/commands.md](docs/commands.md).
 
-## How it works
+## Scout modes
 
-- **MCP server** (`server/`): 15 tools, all arithmetic, point-in-time on request: prices,
-  indicators, the calibrated direction model, intraday and pre-market scans, plans, journal.
-- **Twenty roles** (`roles/`) for two desks, `analyze` and `scout`, generated into each
-  host's agent format. On Claude Code, analysts and debaters run on Sonnet and judges on your
-  session model, mirroring the paper's quick/deep split. Codex plays the roles in sequence.
-- **Files, not chat.** Each role writes a report into `tradefloor-runs/...`; later roles
-  read the files. Every intermediate step is inspectable.
+| Mode | When | What it predicts | Plan |
+|------|------|------------------|------|
+| `premarket` | before the open, when closed, or in the first 15 minutes | the chance of a big move today; a side only past two standard errors | two-sided opening-range break |
+| `live` | 15 minutes into the session | the chance momentum follows through by the close | trigger, stop, targets, square-off |
 
-Details and the maths: [docs/architecture.md](docs/architecture.md). What changed from
-TradingAgents and why: [docs/research-notes.md](docs/research-notes.md).
+Chosen by the clock; `premarket` or `live` forces one. `at "YYYY-MM-DD HH:MM"` replays any
+moment in the last ~55 days, point-in-time.
+
+## Development
+
+```bash
+python tools/build.py --check                                     # generated files match their sources
+uv run --project server --group dev pytest -q tests server/tests  # offline tests
+uv run --project server python server/scripts/smoke.py            # live: every tool over MCP
+```
+
+`rules/tradefloor.md` and `roles/*.md` are the only hand-edited copies of the protocol and
+the twenty desk roles. `tools/build.py` generates the 71 host files from them (agents in
+each host's format, rules files, manifests) and `--check` fails CI on drift. The tests
+cover the no-look-ahead guarantee directly: features computed on truncated history must
+equal the same rows computed on full history.
+
+Recorded run of the suite (Python 3.14.0 in uv, Windows 11, 2026-09-28):
+
+```
+ran: python tools/build.py --check && uv run --project server --group dev pytest -q tests server/tests
+result: 71 generated files match their sources; 98 passed
+```
+
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). What comes next: [ROADMAP.md](ROADMAP.md).
 
 ## FAQ
 
-**Does it make money?** Unknown, and the project is built to find out rather than assert
-it. The pre-market scan measurably picks bigger movers; no trading edge is established.
-Run `/tradefloor:review` after a few weeks of calls.
+**Does it make money?**
+Unknown, and it is built to find out rather than to assert it. The pre-market scan
+measurably picks bigger movers. No trading edge is established. Run `/tradefloor:review`
+after a few weeks of calls.
 
-**Why use LLMs at all if the numbers come from code?** For what code does badly: reading
-filings and headlines, weighing a catalyst against a chart, arguing both sides, and
-explaining a decision. The model is bounded: it can shift a probability by 0.10, not
-invent one.
+**Why use an LLM at all if the numbers come from code?**
+For what code does badly: reading filings and headlines, weighing a catalyst against a
+chart, arguing both sides, and explaining the decision. The model is bounded: it can move a
+probability by 0.10, not invent one.
 
-**Look-ahead bias?** Every dated tool takes `as_of` and returns nothing after it;
-calibration labels only days whose outcome was known by then; web search is off in
-replays; there are tests for it.
+**Look-ahead bias?**
+Every dated tool takes `as_of` or `at` and returns nothing after it. Calibration only
+labels outcomes known by then. Web search is off in replays. The tests check it.
 
-**Data?** Yahoo Finance through yfinance (unofficial, for personal research; mind Yahoo's
-terms), Google News RSS, public filings. Intraday data is delayed 15 minutes for NSE and
-more on some exchanges; every scan reports the delay.
+**Is the data licensed?**
+No. Yahoo Finance through yfinance is unofficial and meant for personal research; mind
+Yahoo's terms. Keyed broker and vendor adapters are on the [roadmap](ROADMAP.md).
 
-**What does a run cost?** A full desk is 11 to 12 subagent calls and took 9 to 12 minutes in
-testing; `quick`, `direction` and `scan` use no agents.
+**Can it place trades?**
+No, by design. Plans are conditional (they fill only if the trigger trades), and a human
+places them.
 
-## Limits
-
-- Delayed, unofficial data; no pre-open prices or overnight gaps for most exchanges; no
-  exchange holiday calendar.
-- Current-only fundamentals, short interest and options are excluded from historical runs.
-- LLM output varies between runs; the quant layer does not.
-- Hosts follow procedures to different degrees: Antigravity answered with correct numbers
-  but skipped the journal step in testing ([details](docs/agent-portability.md)).
-
-## Contributing
-
-```
-python tools/build.py --check                                    # generated files in sync
-uv run --project server --group dev pytest -q tests server/tests  # 98 offline tests
-uv run --project server python server/scripts/smoke.py            # live, every tool over MCP
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [roadmap](ROADMAP.md).
+**Why "tradefloor"?**
+trading floor, *n.* The room where analysts, traders and risk managers argue before money
+moves. This one keeps the tickets.
 
 ## Citation
 
-The multi-agent design comes from Xiao, Sun, Luo and Wang,
+The desk's design comes from Xiao, Sun, Luo and Wang,
 [TradingAgents](https://arxiv.org/abs/2412.20138) (2024). No code is shared.
 
 ```
@@ -195,4 +343,16 @@ The multi-agent design comes from Xiao, Sun, Luo and Wang,
 }
 ```
 
-MIT licensed. See [LICENSE](LICENSE).
+## License
+
+[MIT](LICENSE).
+
+## Star history
+
+<a href="https://www.star-history.com/HimanshuJ16/tradefloor#history">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=HimanshuJ16/tradefloor&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=HimanshuJ16/tradefloor&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=HimanshuJ16/tradefloor&type=Date" />
+ </picture>
+</a>

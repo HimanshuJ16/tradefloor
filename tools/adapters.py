@@ -54,8 +54,12 @@ def version() -> str:
 
 
 def server_args(root: str) -> list[str]:
-    """How every host launches the server. `root` is the host's plugin-root expression."""
-    return ["run", "--quiet", "--project", f"{root}/server", "tradefloor-mcp"]
+    """How every host launches the server. `root` is the host's plugin-root expression.
+
+    `python -m`, not the `tradefloor-mcp` console script: on Windows a running server locks
+    its script's .exe, and uv rewrites console scripts whenever it reinstalls the package,
+    so a second session or an update would fail to start while the first one runs."""
+    return ["run", "--quiet", "--project", f"{root}/server", "python", "-m", "tradefloor.server"]
 
 
 def lf(text: str) -> str:

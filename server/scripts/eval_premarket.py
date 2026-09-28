@@ -5,9 +5,14 @@ in-play stocks, and is graded on what that session did: big-move rate and a two-
 opening-range trade, against every other stock in the universe the same day.
 
     uv run python scripts/eval_premarket.py "nifty 50" "s&p 500" dax
+    uv run python scripts/eval_premarket.py "nifty 50" dax --json ../../benchmarks/results/<date>-premarket.json
+
+A session dated today in the exchange's timezone is never a target: it may still be open.
 """
 
+import json
 import sys
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import numpy as np
@@ -24,7 +29,8 @@ def evaluate(market: str) -> dict:
     bars = data.intraday_bars(uni["symbols"], tz=ex.tz)
     hist = {s: it.sessions(df) for s, df in bars.items()}
     hist = {s: v for s, v in hist.items() if len(v) >= pm.LOOKBACK + 10}
-    dates = sorted({x.index[0].date() for v in hist.values() for x in v})
+    today = datetime.now(ZoneInfo(ex.tz)).date()
+    dates = sorted({x.index[0].date() for v in hist.values() for x in v} - {today})
     picks_rows, all_rows = [], []
     for target in dates[-N_DAYS:]:
         prior = {s: [x for x in v if x.index[0].date() < target] for s, v in hist.items()}
@@ -37,11 +43,11 @@ def evaluate(market: str) -> dict:
         floor = float(np.quantile(list(values.values()), 0.3))
         day = []
         for s, v in prior.items():
-            today = [x for x in hist[s] if x.index[0].date() == target]
+            same_day = [x for x in hist[s] if x.index[0].date() == target]
             f = pm.features_before(v)
-            if not today or f is None or values[s] < floor or f["adr_pct"] < 0.008:
+            if not same_day or f is None or values[s] < floor or f["adr_pct"] < 0.008:
                 continue
-            sess = today[0]
+            sess = same_day[0]
             o = pm.outcome(sess, f["adr_pct"])
             orb = pm.simulate_orb(sess, f["adr_pct"] * f["prev_close"])
             day.append({"symbol": s, "date": target, "score": scorer(f["value_ratio"], f["range_ratio"]),
@@ -55,7 +61,9 @@ def evaluate(market: str) -> dict:
             (picks_rows if i < TOP_K else all_rows).append(r)
     P, R = pd.DataFrame(picks_rows), pd.DataFrame(all_rows)
     return {
-        "market": market, "sessions": int(P["date"].nunique()), "picks": len(P), "others": len(R),
+        "market": market, "universe": uni["label"], "first_session": str(min(P["date"])), "last_session": str(max(P["date"])),
+        "sessions": int(P["date"].nunique()), "picks": len(P), "others": len(R),
+        "big_moves_picks": int(P["big_move"].sum()), "big_moves_others": int(R["big_move"].sum()),
         "big_move_picks": P["big_move"].mean(), "big_move_others": R["big_move"].mean(),
         "trend_day_picks": P["trend_day"].mean(), "trend_day_others": R["trend_day"].mean(),
         "orb_avg_r_picks": P["orb_r"].mean(), "orb_avg_r_others": R["orb_r"].mean(),
@@ -63,10 +71,27 @@ def evaluate(market: str) -> dict:
     }
 
 
+def _plain(v):
+    return round(float(v), 4) if isinstance(v, (float, np.floating)) else v
+
+
 if __name__ == "__main__":
-    for m in sys.argv[1:] or ["nifty 50"]:
+    args, out_path = sys.argv[1:], None
+    if "--json" in args:
+        i = args.index("--json")
+        out_path = args[i + 1]
+        args = args[:i] + args[i + 2:]
+    results = []
+    for m in args or ["nifty 50"]:
         r = evaluate(m)
+        results.append({k: _plain(v) for k, v in r.items()})
         print(f"== {r['market']}: {r['sessions']} sessions walk-forward, top {TOP_K} picks/day ({r['picks']}) vs the rest ({r['others']} stock-days)")
         print(f"   big move (range >= {pm.BIG_MOVE_X_ADR}x ADR): picks {r['big_move_picks']:.0%}  vs rest {r['big_move_others']:.0%}")
         print(f"   trend day:                     picks {r['trend_day_picks']:.0%}  vs rest {r['trend_day_others']:.0%}")
         print(f"   two-sided ORB, avg R per stock: picks {r['orb_avg_r_picks']:+.2f} ({r['orb_trades_picks']} trades)  vs rest {r['orb_avg_r_others']:+.2f} ({r['orb_trades_others']} trades)")
+    if out_path:
+        doc = {"ran_at": datetime.now().astimezone().isoformat(timespec="seconds"), "top_k": TOP_K, "sessions_per_market": N_DAYS,
+               "big_move_definition": f"session range at least {pm.BIG_MOVE_X_ADR}x the stock's 20-session average", "markets": results}
+        with open(out_path, "w", encoding="utf-8") as fh:
+            json.dump(doc, fh, indent=2)
+        print(f"wrote {out_path}")
