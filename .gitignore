@@ -7,4 +7,3 @@ __pycache__/
 dist/
 build/
 .env
-ROADMAP.md
