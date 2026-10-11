@@ -4,6 +4,23 @@ Run `uv run --project server python -m tradefloor.demo` and open `http://127.0.0
 The prior scenario view remains at `/lab`. The workspace and numerical tools work locally;
 there are no accounts or broker connections. The public artifact contains synthetic data only.
 
+## Reading the terminal
+
+Use the three scenario cards to open an original earnings, policy or liquidity example.
+The session strip records the loaded receipt's world count, horizon and seed. Selecting a
+draft assumption leaves the loaded results visible until Run or Fork completes.
+
+The chart supports return percentages and prices in the frozen reference's quote units.
+Its slider and keyboard arrows select actual saved observation days; the readout includes
+the scenario median, 10–90% interval and no-reaction baseline. Day zero is the frozen anchor.
+The shaded interval describes conditional simulations, not a confidence interval for model
+accuracy. The SIDEWAYS band is converted from the receipt's log-return event definition.
+
+The thesis summary derives its direction, baseline probability shift and evidence counts
+from the loaded receipt. It does not independently evaluate the evidence or infer causality.
+Press **Ctrl+K / Cmd+K** to search views and available actions. Enter selects the first match;
+Escape closes the menu. Mobile controls expand from **Project & assumptions**.
+
 ## Research loop
 
 1. Open an example, name a question and save a project.

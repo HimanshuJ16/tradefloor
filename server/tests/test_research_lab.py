@@ -565,6 +565,8 @@ def test_demo_host_origin_and_transport(monkeypatch):
         with urlopen(root) as r:
             html = r.read().decode()
             assert "/*APP*/" not in html and "What would change" in html
+            assert "/*MODEL*/" not in html and "TradefloorView" in html
+            assert 'id="chart-day"' in html and 'id="command-dialog"' in html
         for headers in [
             {"Host": "attacker.invalid"},
             {"Origin": "https://attacker.invalid"},

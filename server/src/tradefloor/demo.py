@@ -46,6 +46,7 @@ def workspace_document(embedded: dict | None = None) -> str:
     payload = canonical(embedded or {}).replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     return (html.replace("/*STYLE*/", (ASSETS / "workspace.css").read_text(encoding="utf-8"))
             .replace("/*DATA*/", "window.DEMO_DATA=" + payload + ";")
+            .replace("/*MODEL*/", (ASSETS / "workspace-model.js").read_text(encoding="utf-8"))
             .replace("/*APP*/", (ASSETS / "workspace.js").read_text(encoding="utf-8")))
 
 

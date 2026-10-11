@@ -38,6 +38,11 @@ Save a project, change the reaction assumptions and fork it on identical history
 for a counterexample, compare branches and models, inspect evidence dependencies, then
 reveal a held-out **synthetic** outcome. Projects retain branches, evidence and revision history.
 
+Switch the chart between returns and prices, inspect saved simulation days, and read the
+UP / SIDEWAYS / DOWN breakdown alongside the baseline shift. Press **Ctrl+K** (Windows/Linux)
+or **Cmd+K** (macOS) to find workspace views and research actions. On mobile, expand
+**Project & assumptions** to edit the scenario.
+
 <p align="center"><img src="assets/workspace-preview.jpg" width="1000" alt="Tradefloor research workspace with project controls, explicit assumptions, baseline comparisons and a return fan. All data shown is fictional."></p>
 
 *Interface preview using synthetic fixtures; the displayed odds are not a market-performance claim.*

@@ -44,12 +44,14 @@ jobs:
         run: |
           node --check server/src/tradefloor/assets/app.js
           node --check server/src/tradefloor/assets/workspace.js
+          node --check server/src/tradefloor/assets/workspace-model.js
           node --test tests/frontend.test.cjs
+          node --test tests/workspace-model.test.cjs
       - name: Install built wheel and verify assets
         shell: bash
         run: |
           wheel=$(find dist -name '*.whl' -print -quit)
-          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'thesis_challenge' in cli.TOOLS; assert 'Research, with a memory.' in demo.workspace_document(); print('wheel verified')"
+          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'thesis_challenge' in cli.TOOLS; html = demo.workspace_document(); assert 'A thesis is a starting point.' in html; assert 'TradefloorView' in html; print('wheel verified')"
       - uses: actions/upload-artifact@v4
         with:
           name: python-distributions

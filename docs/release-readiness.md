@@ -11,8 +11,8 @@ deployment or Hacker News post was made during this work.
 
 | Check | Observed result |
 |---|---|
-| Full offline Python suite | 171 passed on Windows / Python 3.14, 36.45 seconds |
-| Existing classic frontend regression suite | 8 passed; this suite does not cover the new workspace |
+| Full offline Python suite | 171 passed on Windows / Python 3.14, 19.34 seconds |
+| Frontend regression suites | 12 passed: 8 classic UI tests and 4 workspace calculation tests |
 | New workspace JavaScript syntax | Passed |
 | Python undefined-name / syntax lint | Passed (`ruff check --select F,E9`) |
 | Generated host files | All 80 match their sources |
@@ -39,7 +39,8 @@ alignment, moving-block evaluation, non-backdatable memory and numerical benchma
 
 ## Real-browser checks
 
-Executed in the ChatGPT in-app browser against isolated local data:
+Executed in the ChatGPT in-app browser with synthetic examples. The original workflow
+checks used an isolated data home; the terminal refresh was also checked on local port 8765:
 
 - Project creation, custom assumption fork, save/reopen and branch comparison.
 - Bounded counterexample search; progress display and cancellation back to usable controls.
@@ -52,6 +53,12 @@ Executed in the ChatGPT in-app browser against isolated local data:
   the workspace view navigation intentionally scrolls horizontally.
 - Mobile project controls expand/collapse. No captured console errors in either workspace
   or standalone demo during the exercised flows.
+- Terminal refresh: scenario cards, return/price chart units, saved-day keyboard inspection,
+  computed thesis summary, and searchable command menu with Enter selection and Escape dismissal.
+
+The workspace calculation tests cover price conversion, saved-observation selection,
+probability-point shifts, evidence review counts and the log-return event band. They do not
+replace browser interaction checks or certify accessibility conformance.
 
 The mobile view now opens on the research result, with assumptions behind an explicit
 toggle. Job progress/cancel controls remain above the view navigation. Custom loaded runs

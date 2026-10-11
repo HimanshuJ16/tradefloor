@@ -2,7 +2,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const offline = Object.keys(window.DEMO_DATA || {}).length > 0;
-  const state = { current: null, project: null, branches: new Map(), busy: false, job: null, importing: "run", preview: false };
+  const state = { current: null, project: null, branches: new Map(), busy: false, job: null, importing: "run", preview: false, chartMode: "return", chartIndex: null };
   const pct = (n) => (100 * n).toFixed(1) + "%";
   const signed = (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
   const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
@@ -13,6 +13,7 @@
   function busy(value) {
     state.busy = value;
     $("assumptions").disabled = value || offline;
+    for (const button of document.querySelectorAll("[data-case]")) button.disabled = value;
     for (const id of ["run", "fork", "case", "preset", "project-select", "save-project", "open-run", "open-project", "challenge", "investigate", "arena", "fetch-source"]) $(id).disabled = value;
     $("fork").disabled = value || !state.current || state.preview;
     $("export-run").disabled = value || !state.current;
@@ -58,6 +59,7 @@
     const b = JSON.parse(response.bundle_json), r = response.result;
     if (b.schema !== "tradefloor-run-v1" || b.kind !== "scenario" || !/^[a-f0-9]{32}$/.test(b.id) || !r || r.run?.run_id !== b.id) throw new Error("Select a valid scenario receipt");
     const req = b.request;
+    if (!Number.isFinite(r.event_contract?.reference_price) || r.event_contract.reference_price <= 0 || !Number.isFinite(r.event_contract.flat_band) || r.event_contract.flat_band < 0) throw new Error("Invalid price anchor or event band");
     if (!["earnings", "policy", "liquidity"].includes(req?.case) || ![req.sentiment, req.persistence, req.retail_weight, req.seed, req.worlds, r.event_contract?.horizon_days].every(Number.isFinite)) throw new Error("Invalid scenario metadata");
     for (const x of [r.scenario, r.baseline]) {
       if (!x || ![x.p_up, x.p_down, x.p_flat].every(n => Number.isFinite(n) && n >= 0 && n <= 1) || Math.abs(x.p_up + x.p_down + x.p_flat - 1) > .002) throw new Error("Invalid scenario probabilities");
@@ -82,16 +84,52 @@
   }
   function fan(r) {
     const svg = $("fan"), width = Math.max(230, svg.clientWidth || 600), h = r.event_contract.horizon_days;
-    const a = [{ day: 0, p10: 0, p50: 0, p90: 0 }, ...r.scenario.fan], b = [{ day: 0, p10: 0, p50: 0, p90: 0 }, ...r.baseline.fan];
+    const series = window.TradefloorView.series(r, state.chartMode), a = series.scenario, b = series.baseline;
+    const index = Math.max(0, Math.min(a.length - 1, state.chartIndex ?? a.length - 1));
+    const point = a[index], reference = window.TradefloorView.nearest(b, point.day);
+    const format = value => state.chartMode === "price" ? value.toFixed(2) : signed(value);
     const vals = [...a, ...b].flatMap(p => [p.p10, p.p90]);
     let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .15 || 1; lo -= pad; hi += pad;
-    const x = d => 48 + d / h * (width - 65), y = v => 210 - (v - lo) / (hi - lo) * 185;
+    const x = d => 53 + d / h * (width - 70), y = v => 210 - (v - lo) / (hi - lo) * 185;
     svg.replaceChildren(); svg.setAttribute("viewBox", `0 0 ${width} 245`);
-    const draw = (name, attrs, text) => { const n = document.createElementNS("http://www.w3.org/2000/svg", name); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (text !== undefined) n.textContent = text; svg.append(n); };
-    for (let i = 0; i <= 4; i++) { const value = lo + (hi - lo) * i / 4; draw("line", { x1: 48, x2: width - 17, y1: y(value), y2: y(value), stroke: "#2c3d49" }); draw("text", { x: 0, y: y(value) + 3 }, signed(value)); }
-    draw("polygon", { points: [...a.map(p => `${x(p.day)},${y(p.p90)}`), ...a.slice().reverse().map(p => `${x(p.day)},${y(p.p10)}`)].join(" "), fill: "#98d2bf18" });
-    for (const [data, color, dash] of [[b, "#87bbd7", "4 4"], [a, "#98d2bf", "none"]]) draw("polyline", { points: data.map(p => `${x(p.day)},${y(p.p50)}`).join(" "), fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": dash });
-    for (const d of [0, ...r.scenario.fan.map(p => p.day)]) draw("text", { x: x(d) - 5, y: 237 }, d === h ? `${d}d` : String(d));
+    svg.setAttribute("aria-label", `${state.chartMode === "price" ? "Price in quote units" : "Return percent"} distribution, day ${point.day}: median ${format(point.p50)}, 10–90% range ${format(point.p10)} to ${format(point.p90)}`);
+    const draw = (name, attrs, text) => { const n = document.createElementNS("http://www.w3.org/2000/svg", name); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (text !== undefined) n.textContent = text; svg.append(n); return n; };
+    for (let i = 0; i <= 4; i++) { const value = lo + (hi - lo) * i / 4; draw("line", { x1: 53, x2: width - 17, y1: y(value), y2: y(value), stroke: "#26343e", "stroke-dasharray": "2 5" }); draw("text", { x: 0, y: y(value) + 3 }, format(value)); }
+    draw("polygon", { points: [...a.map(p => `${x(p.day)},${y(p.p90)}`), ...a.slice().reverse().map(p => `${x(p.day)},${y(p.p10)}`)].join(" "), fill: "#80d5b516" });
+    for (const bound of ["p10", "p90"]) draw("polyline", { points: a.map(p => `${x(p.day)},${y(p[bound])}`).join(" "), fill: "none", stroke: "#80d5b535", "stroke-width": 1 });
+    for (const [data, color, dash] of [[b, "#88b9e0", "4 4"], [a, "#80d5b5", "none"]]) draw("polyline", { points: data.map(p => `${x(p.day)},${y(p.p50)}`).join(" "), fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": dash });
+    const ticks = width < 400 ? [0, Math.round(h/2), h] : [0, ...r.scenario.fan.map(p => p.day)];
+    let lastLabel = -100;
+    for (const d of ticks) { if (x(d)-lastLabel < 36 && d !== h) continue; if (d !== h && x(h)-x(d)<32) continue; draw("text", { x: x(d), y: 236, "text-anchor": "middle" }, d === h ? `${d}d` : String(d)); lastLabel = x(d); }
+    draw("line", { x1: x(point.day), x2: x(point.day), y1: 20, y2: 211, stroke: "#d5b78465", "stroke-dasharray": "3 4" });
+    draw("circle", { cx: x(point.day), cy: y(point.p50), r: 4, fill: "#80d5b5", stroke: "#0b1016", "stroke-width": 2 });
+    $("chart-day").max = a.length - 1; $("chart-day").value = index;
+    $("chart-day").setAttribute("aria-valuetext", `Trading day ${point.day}`);
+    set("chart-readout", `DAY ${point.day} · Median ${format(point.p50)} · Range ${format(point.p10)} to ${format(point.p90)} · Baseline ${format(reference.p50)}${state.chartMode === "price" ? " · quote units" : ""}`);
+    for (const mode of ["return", "price"]) $("chart-" + mode).setAttribute("aria-pressed", String(mode === state.chartMode));
+  }
+  for (const mode of ["return", "price"]) $("chart-" + mode).addEventListener("click", () => { state.chartMode = mode; if (state.current) fan(state.current.result); });
+  $("chart-day").addEventListener("input", () => { state.chartIndex = Number($("chart-day").value); if (state.current) fan(state.current.result); });
+  $("fan").addEventListener("pointermove", event => {
+    if (!state.current || event.pointerType === "touch") return;
+    const r = state.current.result, rect = $("fan").getBoundingClientRect();
+    const day = Math.max(0, Math.min(r.event_contract.horizon_days, (event.clientX - rect.left - 53) / (rect.width - 70) * r.event_contract.horizon_days));
+    const rows = window.TradefloorView.series(r).scenario, nearest = window.TradefloorView.nearest(rows, day), index = rows.indexOf(nearest);
+    if (state.chartIndex !== index) { state.chartIndex = index; fan(r); }
+  });
+  function renderBrief(r, bundle) {
+    const summary = window.TradefloorView.summary(r);
+    set("brief-heading", summary.direction === "SIDEWAYS" ? "A divided outlook." : summary.direction === "UP" ? "An upward tilt." : "A downward tilt.");
+    set("brief-text", `The reaction assumptions ${summary.shiftPoints >= 0 ? "raise" : "lower"} P(UP) by ${Math.abs(summary.shiftPoints).toFixed(1)} points versus no reaction. This is a conditional model comparison, not a trading signal.`);
+    $("brief-signals").replaceChildren();
+    for (const [label, value, review] of [["Direction rule", "±8 pt UP–DOWN gap", false], ["Evidence / assumptions", `${summary.sources} / ${summary.assumptions}`, false], ["Review flags", String(summary.review), summary.review > 0]]) {
+      const row = el("div", undefined, "signal" + (review ? " review" : "")); row.append(el("span", label), el("strong", value)); $("brief-signals").append(row);
+    }
+    set("p-down", pct(r.scenario.p_down)); set("p-flat", pct(r.scenario.p_flat)); set("p-up-detail", pct(r.scenario.p_up));
+    set("event-band", `SIDEWAYS: ${signed(summary.flatLower)} to ${signed(summary.flatUpper)} at the ${r.event_contract.horizon_days}-day horizon.`);
+    set("session-label", state.preview ? "Imported preview · unverified" : "Frozen experiment");
+    set("session-meta", `${bundle.request.worlds} WORLDS / ${r.event_contract.horizon_days} DAYS / SEED ${bundle.request.seed}`);
+    for (const button of document.querySelectorAll("[data-case]")) { const active = button.dataset.case === bundle.request.case; button.classList.toggle("active", active); button.setAttribute("aria-pressed", String(active)); }
   }
   function probabilityRows(rows, id = "baselines") {
     $(id).replaceChildren();
@@ -104,7 +142,7 @@
   }
   function render(response, preview = false) {
     const b = validate(response), r = response.result;
-    state.current = response; state.preview = preview;
+    state.current = response; state.preview = preview; state.chartIndex = null;
     state.branches.set(b.id, { response, label: `${r.name} · ${b.request.sentiment >= 0 ? "+" : ""}${b.request.sentiment}` });
     $("case").value = b.request.case;
     const base = { earnings: [.6, 5], policy: [-.5, 12], liquidity: [-.75, 3] }[b.request.case];
@@ -122,7 +160,7 @@
     set("failure", r.falsification.checks[0].reason + " Horizon threshold: " + Number(r.falsification.checks[0].threshold).toFixed(2));
     $("reveal").hidden = !r.demo_settlement; $("settlement").hidden = true;
     for (const id of ["challenge-result", "priorities", "arena-result"]) $(id).replaceChildren();
-    fan(r); renderBranches(); renderEvidence(); busy(state.busy);
+    renderBrief(r, b); fan(r); renderBranches(); renderEvidence(); busy(state.busy);
     status(preview ? "Opened an unverified receipt preview." : "Frozen run loaded. Edit an assumption, fork it, or search for a counterexample.");
   }
   async function attach() {
@@ -156,6 +194,8 @@
       if (offline && fork) status("Opened a precomputed fork of the example's original thesis.");
     });
   }
+  for (const button of document.querySelectorAll("[data-case]")) button.addEventListener("click", () => { if (state.busy) return; $("case").value = button.dataset.case; $("preset").value = "original"; run(false); });
+  $("inspect-evidence").addEventListener("click", () => { tab("evidence"); $("main").focus(); });
   $("run").addEventListener("click", () => run(false)); $("fork").addEventListener("click", () => run(true));
   $("mobile-controls").addEventListener("click", () => { const open = $("research-controls").classList.toggle("open"); $("mobile-controls").setAttribute("aria-expanded", String(open)); });
   $("case").addEventListener("change", () => { $("preset").value = "original"; run(false); });
@@ -315,6 +355,29 @@
   for (const kind of ["run", "project"]) $("open-" + kind).addEventListener("click", () => { state.importing = kind; $("file").click(); });
   $("file").addEventListener("change", event => { const file = event.target.files[0]; if (!file) return; guarded(async () => { if (file.size > (state.importing === "project" ? 20000000 : 2000000)) throw new Error("File exceeds import size limit."); const raw = await file.text(), b = JSON.parse(raw); if (state.importing === "project") { const p = await api("project_bundle", { payload: b }); await refreshProjects(p.id); await loadProject(p.id); } else if (offline) { render({ result: { ...b.result, run: { run_id: b.id, sha256: b.sha256 } }, bundle_json: raw }, true); } else { const res = await fetch("/api/scenario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "import", bundle_json: raw }) }); const data = await res.json(); if (!res.ok || data.error) throw new Error(data.error); render(data); await attach(); } }).finally(() => { event.target.value = ""; }); });
   if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => { if (state.current && !$("view-thesis").hidden) fan(state.current.result); }).observe($("fan"));
+  const commands = [
+    ["Thesis · inspect the scenario", "thesis"], ["Branches · compare saved runs", "compare"],
+    ["Model arena · compare forecasts", "models"], ["Evidence · inspect sources and claims", "evidence"],
+    ["Information timeline · what was known when", "timeline"], ["Research tools · documents, portfolio and evaluation", "tools"],
+    ["Export current run receipt", null, "export-run"], ["Find a counterexample", "thesis", "challenge"],
+    ["Rank the unknowns", "thesis", "investigate"]
+  ];
+  function searchCommands() {
+    const query = $("command-search").value.toLowerCase().trim(); $("command-results").replaceChildren();
+    for (const [label, view, action] of commands.filter(([label]) => label.toLowerCase().includes(query))) {
+      const button = el("button", label);
+      button.disabled = Boolean(action && $(action).disabled);
+      button.addEventListener("click", () => { $("command-dialog").close(); if (view) tab(view); if (action) $(action).click(); $("main").focus(); });
+      $("command-results").append(button);
+    }
+    if (!$("command-results").children.length) $("command-results").append(el("p", "No matching tools. Try evidence, model or compare.", "muted"));
+  }
+  function openCommands() { if ($("command-dialog").open) return; $("command-search").value = ""; searchCommands(); $("command-dialog").showModal(); $("command-search").focus(); }
+  $("open-command").addEventListener("click", openCommands);
+  $("close-command").addEventListener("click", () => $("command-dialog").close());
+  $("command-search").addEventListener("input", searchCommands);
+  $("command-search").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); $("command-results").querySelector("button:not(:disabled)")?.click(); } });
+  document.addEventListener("keydown", event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); openCommands(); } });
   async function init() {
     if (offline) {
       set("connection", "STANDALONE DEMO"); set("mode-note", "Seven frozen assumption sets per example. Projects, custom runs and research tools need the local workspace.");
