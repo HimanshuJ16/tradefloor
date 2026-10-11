@@ -121,7 +121,7 @@ def test_intraday_scoring_target_stop_and_untriggered():
     win = journal.score_intraday(e, _session([99.5, 100.0, 100.5, 101.2]), complete=True)
     assert win["exit"] == "target 1" and win["r_multiple"] == 1.0 and win["hit"] is True
     loss = journal.score_intraday(e, _session([100.0, 99.5, 98.8]), complete=True)
-    assert loss["exit"] == "stop" and loss["r_multiple"] == -1.0
+    assert loss["exit"] == "stop" and loss["r_multiple"] == -1.2  # adverse opening gap through the stop
     none = journal.score_intraday(e, _session([99.0, 98.5]), complete=True)
     assert none["triggered"] is False
     pending = journal.score_intraday(e, _session([99.0]), complete=False)

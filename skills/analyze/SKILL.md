@@ -46,8 +46,8 @@ settings). On `candidates`, pick the match for the user's words and home market;
 listings are plausible, ask. Then call `direction_forecast(symbol, HORIZON, as_of)` once
 to learn HORIZON_DAYS.
 
-RUN_DIR = `tradefloor-runs/<SYMBOL, ^ -> idx-, = -> _>/<AS_OF or today>-<HORIZON>` in the
-working directory. Write `RUN_DIR/00-request.md` with the parsed request, the resolution,
+Call `run_begin(kind="analyze", request=<parsed request object>)`. Use its `workspace`
+as RUN_DIR. Write `RUN_DIR/00-request.md` with the parsed request, the resolution,
 DEPTH and ROUNDS (below).
 
 ## 3. Analysts (parallel)

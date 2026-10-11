@@ -6,11 +6,11 @@ report the gap instead of filling it in.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 from mcp.server.mcpserver import MCPServer
 
-from . import data, forecast, indicators, intraday, journal, markets, plan, premarket, scout, settings, swarm
+from . import calendars, data, evaluation, events, forecast, indicators, intraday, journal, lab, markets, microstructure, plan, portfolio, premarket, registry, runs, scout, settings, snapshots, swarm, validation
 
 mcp = MCPServer(
     "tradefloor",
@@ -37,6 +37,7 @@ def _defaults() -> dict:
 
 
 def _ctx(symbol: str, as_of: str | None, years: int = 12):
+    symbol = validation.symbol(symbol)
     d = data.parse_as_of(as_of)
     code = markets.exchange_for_symbol(symbol)
     ex = markets.EXCHANGES[code]
@@ -51,7 +52,7 @@ def _ctx(symbol: str, as_of: str | None, years: int = 12):
 
 
 def _err(e: Exception) -> dict:
-    return {"error": f"{type(e).__name__}: {e}"}
+    return {"error": f"{type(e).__name__}: {e}", "category": "invalid_input" if isinstance(e, (ValueError, TypeError, KeyError)) else "unavailable"}
 
 
 @mcp.tool()
@@ -87,6 +88,7 @@ def quick_direction(query: str, horizon: str | None = None, as_of: str | None = 
             "direction": fc["direction"], "confidence": fc["confidence"], "probabilities": p,
             "base_rates": fc["base_rates"], "tilt": fc["tilt"], "expected_range_80pct": fc["expected_range_80pct"],
             "similar_setups": fc["similar_setups"], "drivers": fc["drivers"][:3],
+            "event_contract": fc["event_contract"], "run": fc["run"],
         }
         if fc.get("setup_vs_outcome"):
             out["setup_vs_outcome"] = fc["setup_vs_outcome"]
@@ -99,8 +101,9 @@ def quick_direction(query: str, horizon: str | None = None, as_of: str | None = 
         if record:
             entry = {"symbol": sym, "as_of": fc["as_of"], "horizon_days": fc["horizon_trading_days"], "price": fc["price"],
                      "direction": fc["direction"], "p_up": p["up"], "p_down": p["down"], "base_p_up": fc["base_rates"]["up"],
-                     "flat_band_pct": round(0.25 * fc["volatility"]["horizon_1sigma_pct"], 3), "source": "quant"}
-            if plan_out and "stop" in plan_out:
+                     "p_flat": p["flat"], "event_contract": fc["event_contract"], "base_probabilities": fc["base_rates"],
+                     "run_id": fc["run"]["run_id"], "source": "quant"}
+            if plan_out and "stop" in plan_out and plan_out.get("side") in ("long", "short"):
                 entry.update({"stop": plan_out["stop"], "targets": plan_out.get("targets")})
             out["journal_id"] = journal.record(entry)["id"]
         if note:
@@ -171,6 +174,11 @@ def direction_forecast(symbol: str, horizon: str = "1m", as_of: str | None = Non
         h = markets.horizon_to_days(horizon, ex.trading_days)
         out = forecast.forecast(df, h, bench)
         out.update({"symbol": symbol, "currency": ex.currency, "horizon": horizon})
+        out["data_status"] = {"provider": "Yahoo via yfinance", "capture_time": df.attrs.get("capture_time"),
+                              "price_basis": "provider adjusted; only completed daily bars", "benchmark_available": bench is not None,
+                              "archival_availability_verified": False}
+        out["run"] = runs.create("direction", {"symbol": symbol, "horizon": horizon, "as_of": as_of},
+                                 {"prices": snapshots.frame(df), "benchmark": snapshots.frame(bench) if bench is not None else None}, out)
         return out
     except Exception as e:
         return _err(e)
@@ -268,23 +276,60 @@ def macro_context(symbol: str, as_of: str | None = None) -> dict:
 @mcp.tool()
 def trade_plan(symbol: str, direction: str, horizon: str = "1m", as_of: str | None = None,
                capital: float | None = None, risk_pct: float | None = None, lot_size: int = 1,
-               allow_short: bool = False) -> dict:
+               allow_short: bool = False, quote_currency: str | None = None, quote_unit_scale: float | None = None,
+               contract_multiplier: float | None = None, fx_to_account: float | None = None,
+               quantity_step: float | None = None, cost_bps: float = 0.0, fx_as_of: str | None = None) -> dict:
     """Entry zone, ATR-based stop, targets with reward:risk, time stop and position size for
     a directional view (UP / DOWN / SIDEWAYS). Capital and risk default to the user's plugin
     config. Sizing risks risk_pct of capital to the stop, capped at the max position size."""
     try:
+        validation.direction(direction)
+        if capital is not None:
+            validation.number(capital, "capital", 0)
         d, ex, df, bench = _ctx(symbol, as_of, years=12)
         h = markets.horizon_to_days(horizon, ex.trading_days)
         fc = forecast.forecast(df, h, bench)
         a = float(indicators.atr(df).iloc[-1])
+        cap = settings.get("capital") if capital is None else capital
+        account = settings.get("account_currency") or markets.EXCHANGES[settings.get("default_market")].currency
+        kind = markets.kind_for_symbol(symbol)
+        quote = (quote_currency or ex.currency or "").upper()
+        if quote and (len(quote) != 3 or not quote.isalpha()):
+            raise ValueError("quote_currency must be a three-letter currency code")
+        scale, mult, fx = quote_unit_scale, contract_multiplier, fx_to_account
+        reason = None
+        if ex.price_unit_note and scale is None:
+            reason = "Explicit verified quote_unit_scale required for pence/cents/agorot venues"
+        if kind == "future" and mult is None:
+            reason = "Explicit contract_multiplier required; a continuous futures series is not an executable contract"
+        if quote != account:
+            if fx is None or fx_as_of is None:
+                reason = "Explicit fx_to_account and fx_as_of required for cross-currency capital"
+            else:
+                fx_day = date.fromisoformat(validation.iso_date(fx_as_of, "fx_as_of"))
+                if not 0 <= (date.today()-fx_day).days <= 7:
+                    reason = "FX receipt must be dated within seven days; sizing disabled"
+        if kind == "future":
+            reason = "Continuous futures are analytical only; use a contract-specific adapter before sizing"
+        if not quote:
+            reason = "Explicit quote_currency required for this instrument"
+        if d and cap:
+            reason = "Historical adjusted prices are analytical references, not executable quotes; sizing disabled"
         out = plan.build_plan(
             price=float(df["Close"].iloc[-1]), atr=a, direction=direction, horizon_days=h,
-            capital=settings.get("capital") if capital is None else capital,
+            capital=0 if reason else cap,
             risk_pct=settings.get("risk_per_trade_pct") if risk_pct is None else risk_pct,
             max_position_pct=settings.get("max_position_pct"), lot_size=lot_size,
             range_high=fc["expected_range_80pct"]["high"], range_low=fc["expected_range_80pct"]["low"],
             allow_short=allow_short,
+            quote_unit_scale=1 if scale is None else scale, contract_multiplier=1 if mult is None else mult,
+            fx_to_account=1 if fx is None else fx, quantity_step=quantity_step, cost_bps=cost_bps,
         )
+        out["account_currency"] = account
+        out["quote_currency"] = quote
+        out["sizing_status"] = "blocked: " + reason if reason else out.get("sizing_status", "unit-normalized arithmetic; verify instrument metadata and executable quote")
+        out["fx_receipt"] = {"rate": fx, "as_of": fx_as_of, "source": "caller supplied; not independently verified"} if fx is not None else None
+        out["price_basis"] = "provider-adjusted analytical close; plan levels are conditional reference levels"
         out.update({"symbol": symbol, "currency": ex.currency, "price": round(float(df["Close"].iloc[-1]), 4), "atr14": round(a, 4), "horizon_trading_days": h})
         if markets.kind_for_symbol(symbol) == "index":
             alias = next((x for x in markets.INDEX_ALIASES.values() if x.symbol == symbol.upper()), None)
@@ -304,6 +349,8 @@ def scan(symbols: list[str], horizon: str = "1m", as_of: str | None = None) -> d
     """Rank up to 40 symbols by tilt: how much more bullish (or bearish) today's setup is than
     each symbol's own base rate, from the quant direction forecast. Cheap first pass before a
     full analysis. Returns direction, probabilities, edge and confidence per symbol."""
+    if not isinstance(symbols, list) or not 1 <= len(symbols) <= 40:
+        return _err(ValueError("scan requires 1..40 ticker symbols"))
     rows, errors = [], []
     for s in symbols[:40]:
         r = direction_forecast(s, horizon, as_of)
@@ -334,7 +381,7 @@ def intraday_scan(market: str, top: int = 8, at: str | None = None, size: int | 
     mode: auto, premarket or live. at='YYYY-MM-DD HH:MM' (exchange time, within ~55 days)
     replays a past moment point-in-time. side: both, long or short."""
     try:
-        return scout.run(market, top=max(1, min(top, 20)), at=at, size=size, side=side, min_rvol=min_rvol, mode=mode)
+        return scout.run(market, top=validation.integer(top, "top", 1, 20), at=at, size=size, side=side, min_rvol=min_rvol, mode=mode)
     except Exception as e:
         return _err(e)
 
@@ -372,12 +419,15 @@ def swarm_simulate(symbol: str, horizon: str = "1m", reactions: list[dict] | Non
     try:
         d, ex, df, bench = _ctx(symbol, as_of, years=12)
         h = markets.horizon_to_days(horizon, ex.trading_days)
-        out = swarm.run(df, ex.code, h, reactions, runs=max(100, min(worlds, 3000)), agents=max(200, min(agents, 5000)),
+        out = swarm.run(df, ex.code, h, reactions, runs=worlds, agents=agents,
                         seed=seed, weights=weights)
         out.update({"symbol": symbol, "currency": ex.currency, "as_of": str(df.index[-1].date()), "horizon": horizon,
                     "caveats": ["The simulation spreads outcomes around the stock's normal behaviour; it does not know the future.",
                                 "Reactions come from persona agents or a what-if; their skill is measured by the journal (source 'swarm').",
                                 "Group weights and the news-impact scale are assumptions, listed under 'assumptions'."]})
+        out["run"] = runs.create("swarm", {"symbol": symbol, "horizon": horizon, "reactions": reactions,
+                                            "worlds": worlds, "agents": agents, "seed": seed, "weights": weights},
+                                 {"prices": snapshots.frame(df), "exchange": ex.code}, out)
         return out
     except Exception as e:
         return _err(e)
@@ -413,11 +463,11 @@ def journal_review(symbol: str | None = None) -> dict:
                 if e.get("kind") == "intraday":
                     scored.append(_score_intraday(e))
                 else:
-                    scored.append(journal.score_entry(e, data.bars_after(e["symbol"], e["as_of"], int(e["horizon_days"]))))
+                    scored.append(journal.score_entry(e, data.bars_after(e["symbol"], e["as_of"], int(e["horizon_days"]), float(e["price"]))))
             except Exception as ex:
                 scored.append({"id": e.get("id"), "symbol": e.get("symbol"), "status": "error", "error": str(ex)})
         daily = [s for s, e in zip(scored, entries) if e.get("kind") != "intraday"]
-        out = {"path": str(journal.journal_path()),
+        out = {"path": str(settings.home() / "journal.sqlite3"), "legacy_export_path": str(journal.journal_path()),
                "summary": journal.summarize(daily, [e for e in entries if e.get("kind") != "intraday"]), "calls": scored}
         intra = journal.summarize_intraday(scored)
         if intra:
@@ -454,18 +504,30 @@ def _score_intraday(e: dict) -> dict:
     bars = data.intraday_bars([e["symbol"]], tz=ex.tz).get(e["symbol"])
     if bars is None or bars.empty:
         return {"id": e.get("id"), "symbol": e["symbol"], "kind": "intraday", "status": "no data"}
+    bars = calendars.filter_bars(intraday.truncate_at(bars, datetime_now(tz)), ex.code, ex.tz)
     sess = intraday.sessions(bars)
     close_hhmm = intraday.typical_close_time(sess)
     now = datetime_now(tz)
     if e["mode"] == "premarket":
         target = pd.Timestamp(str(e["target_session"])[:10]).date()
+        sch = calendars.session(ex.code, target, ex.tz)
+        if sch["date"] != str(target):
+            return {"id": e.get("id"), "symbol": e["symbol"], "kind": "intraday", "status": "no data", "error": "target is not a scheduled session"}
+        close_hhmm = datetime.fromisoformat(sch["close"]).strftime("%H:%M")
         day = [s for s in sess if s.index[0].date() == target]
         base = {"id": e.get("id"), "symbol": e["symbol"], "kind": "intraday", "mode": "premarket", "session": str(target)}
-        done = bool(day) and (target < now.date() or (close_hhmm is not None and now.strftime("%H:%M") >= close_hhmm))
+        done = target < now.date() or (close_hhmm is not None and now.strftime("%H:%M") >= close_hhmm)
         if not done:
             return {**base, "status": "open"}
+        if not day:
+            return {**base, "status": "no data", "error": "missing target session; Yahoo intraday retention is limited"}
+        coverage = calendars.session_coverage(day[0], ex.code, str(target), ex.tz)
+        if not coverage["complete"]:
+            return {**base, "status": "no data", "coverage": coverage}
         side = e["direction"] if e["direction"] in ("LONG", "SHORT") else None
-        orb = premarket.simulate_orb(day[0], float(e["adr_pct"]) * float(e["prev_close"]), side)
+        orb = premarket.simulate_orb(day[0], float(e["adr_pct"]) * float(e["prev_close"]), side,
+                                    cost_bps=float(e.get("cost_bps", 0)), slippage_bps=float(e.get("slippage_bps", 0)),
+                                    square_off=e.get("square_off"))
         big = premarket.outcome(day[0], float(e["adr_pct"]))["big_move"]
         res = {**base, **orb, "orb": orb.get("status"), "status": "scored", "big_move": bool(big)}
         if orb.get("triggered"):
@@ -478,7 +540,13 @@ def _score_intraday(e: dict) -> dict:
         day = [s for s in sess if s.index[0].date() == t.date()]
         seg = day[0][day[0].index >= t] if day else pd.DataFrame()
         target_date = t.date()
+        sch = calendars.session(ex.code, target_date, ex.tz)
+        close_hhmm = datetime.fromisoformat(sch["close"]).strftime("%H:%M")
     complete = target_date is not None and (target_date < now.date() or (close_hhmm is not None and now.strftime("%H:%M") >= close_hhmm))
+    if complete:
+        coverage = calendars.session_coverage(day[0] if day else pd.DataFrame(), ex.code, str(target_date), ex.tz)
+        if not coverage["complete"]:
+            return {"id":e.get("id"),"symbol":e["symbol"],"kind":"intraday","status":"no data","coverage":coverage}
     return journal.score_intraday({**e, "session_date": str(target_date) if target_date else None}, seg, complete)
 
 
@@ -486,6 +554,280 @@ def datetime_now(tz):
     from datetime import datetime
 
     return datetime.now(tz)
+
+
+@mcp.tool()
+def scenario_lab(case: str = "earnings", sentiment: float | None = None, persistence: float | None = None,
+                 retail_weight: float = .2, seed: int = 7, worlds: int = 300, sensitivity: bool = True,
+                 price_snapshot: dict | None = None, evidence: list[dict] | None = None) -> dict:
+    """Offline scenario lab: three fictional cases, frozen inputs, competing baselines,
+    evidence graph, assumption fragility and falsification. No API key or LLM required.
+    Optional OHLCV snapshot replaces fictional history; its availability is unverified."""
+    try:
+        return lab.simulate(case, sentiment, persistence, retail_weight, seed, worlds, sensitivity,
+                            price_snapshot=price_snapshot, evidence=evidence)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def scenario_fork(run_id: str, overrides: dict) -> dict:
+    """Fork a frozen scenario; change sentiment, persistence, retail_weight, seed, worlds
+    or sensitivity. Saves a new immutable bundle referencing its parent."""
+    try:
+        return lab.fork(run_id, overrides)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def run_bundle(run_id: str | None = None, bundle: dict | None = None, bundle_json: str | None = None) -> dict:
+    """Read/export a hashed immutable run, or import a bundle after verifying its hash.
+    Bundles are data only. Market snapshots may require permission before redistribution."""
+    try:
+        if sum(v is not None for v in (run_id, bundle, bundle_json)) != 1:
+            raise ValueError("supply exactly one of run_id, bundle or bundle_json")
+        if bundle_json is not None:
+            import json
+            if len(bundle_json.encode("utf-8")) > 20_000_000:
+                raise ValueError("bundle exceeds 20 MB")
+            bundle = json.loads(bundle_json)
+        return runs.read(run_id) if run_id else runs.import_bundle(bundle)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def run_replay(run_id: str) -> dict:
+    """Recompute quant, swarm or scenario results from stored prices, without network data.
+    Records a child run. Reproducibility depends on the recorded runtime/model version."""
+    try:
+        b = runs.read(run_id)
+        if b["kind"] == "scenario":
+            return lab.fork(run_id, {})
+        if b["kind"] == "market-sandbox":
+            out = microstructure.simulate(**b["request"])
+            out["run"] = runs.create(b["kind"], b["request"], b["inputs"], out, run_id)
+            return out
+        df = snapshots.restore(b["inputs"]["prices"])
+        r = b["request"]
+        if b["kind"] == "direction":
+            bench = snapshots.restore(b["inputs"]["benchmark"]) if b["inputs"].get("benchmark") else None
+            out = forecast.forecast(df, b["result"]["horizon_trading_days"], bench)
+        elif b["kind"] == "swarm":
+            out = swarm.run(df, b["inputs"]["exchange"], b["result"]["event_contract"]["horizon_days"],
+                            r.get("reactions"), runs=r["worlds"], agents=r["agents"], seed=r["seed"], weights=r.get("weights"))
+        else:
+            raise ValueError("this run kind does not support numerical replay")
+        out["run"] = runs.create(b["kind"], r, b["inputs"], out, run_id)
+        return out
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def run_begin(kind: str, request: dict) -> dict:
+    """Allocate a unique desk workspace and immutable request receipt. Roles write their
+    reports in workspace; repeated symbol/date runs never overwrite earlier reports."""
+    try:
+        if kind not in ("analyze", "scout", "swarm-desk"):
+            raise ValueError("kind must be analyze, scout or swarm-desk")
+        receipt = runs.create(kind, request, runs.desk_inputs(), {})
+        workspace = runs.root() / receipt["run_id"] / "reports"
+        workspace.mkdir()
+        return {**receipt, "workspace": str(workspace)}
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def run_finalize(run_id: str, decision: dict) -> dict:
+    """Freeze a desk's report files and decision into a hashed child bundle. Reads only
+    bounded text files inside the allocated workspace; later edits do not alter the receipt."""
+    try:
+        return runs.finalize(run_id, decision)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def evidence_audit(evidence: list[dict], claims: list[dict], cutoff: str) -> dict:
+    """Validate evidence availability timestamps, duplicate content and claim citations.
+    Measurement/source nodes need published_at AND available_at. Does not verify truth."""
+    try:
+        return lab.evidence_graph(evidence, claims, cutoff)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def decision_validate(prior: dict, adjusted: dict, evidence: list[dict], adjustments: list[dict]) -> dict:
+    """Enforce normalized probabilities, total per-class adjustment <=0.10, evidence IDs,
+    aggregate deltas and deterministic direction. No model-generated arithmetic trusted."""
+    try:
+        return validation.decision(prior, adjusted, evidence, adjustments)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def falsification_check(conditions: list[dict], observations: dict | None = None) -> dict:
+    """Evaluate explicit above/below thesis failure conditions; report missing observations."""
+    try:
+        return lab.falsification(conditions, observations)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def forecast_evaluation(cases: list[dict]) -> dict:
+    """Paired 3-class Brier/log loss, reliability and date-clustered uncertainty. Each case
+    requires as_of, probabilities, reference and outcome. Never proves a trading edge."""
+    try:
+        return evaluation.compare(cases)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def learning_review(training: list[dict], validation_cases: list[dict]) -> dict:
+    """Review training versus later untouched cases with explicit horizon embargo;
+    insufficient evidence retains the baseline. Never automatically changes a model."""
+    try:
+        return evaluation.learning_gate(training, validation_cases)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def portfolio_stress(holdings: list[dict], shocks: dict, account_currency: str,
+                     correlation: list[list[float]] | None = None) -> dict:
+    """Stress account-currency holdings under supplied shocks, concentration and optional
+    positive-semidefinite correlations. Values/volatility are caller assumptions."""
+    try:
+        return portfolio.stress(holdings, shocks, account_currency, correlation)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def experiment_record(experiment: dict) -> dict:
+    """Register forecast, abstained or failed status with actual registration timestamp.
+    Prospective status is derived from date, not asserted by a caller. Local only."""
+    try:
+        return registry.record(experiment)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def experiment_settle(identifier: str, outcome: str) -> dict:
+    """Append an immutable caller-supplied settlement. Use the frozen event definition;
+    this manual outcome is not independently verified or a public proof of performance."""
+    try:
+        return registry.settle(identifier, outcome)
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def experiment_scoreboard() -> dict:
+    """Export all registered statuses and paired evaluations; never omit failures/abstentions."""
+    try:
+        return registry.scoreboard()
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def experiment_capture(symbol: str, horizon: str = "1w", include_swarm: bool = True) -> dict:
+    """Collect quant and no-reaction swarm on identical frozen data, register failures too.
+    Explicit local collection; no scheduler, orders or automatic public upload."""
+    import uuid
+    try:
+        symbol = validation.symbol(symbol)
+        key = uuid.uuid4().hex
+        base = {"symbol": symbol, "as_of": str(date.today()), "experiment_key": key}
+        rows = []
+        fc = direction_forecast(symbol, horizon)
+        if "error" in fc:
+            for source in (["quant", "swarm-baseline"] if include_swarm else ["quant"]):
+                rows.append(registry.record({**base, "source": source, "status": "failed", "reason": fc["error"]}))
+            return {"experiments": rows, "collection_status": "failed; retained in registry"}
+        base["as_of"] = fc["as_of"]
+        common = {**base, "reference": fc["base_rates"], "event_contract": fc["event_contract"], "status": "forecast"}
+        rows.append(registry.record({**common, "source": "quant", "probabilities": fc["probabilities"], "run_id": fc["run"]["run_id"]}))
+        if include_swarm:
+            try:
+                frozen = runs.read(fc["run"]["run_id"])
+                out = swarm.run(snapshots.restore(frozen["inputs"]["prices"]), markets.exchange_for_symbol(symbol),
+                                fc["horizon_trading_days"], runs=300, agents=200, seed=7)
+                if runs.digest(out["event_contract"]) != runs.digest(fc["event_contract"]):
+                    raise ValueError("swarm/quant event definitions differ; comparison refused")
+                p = out["baseline"]
+                rows.append(registry.record({**common, "source": "swarm-baseline", "probabilities": {"up":p["p_up"],"down":p["p_down"],"flat":p["p_flat"]},
+                                             "run_id": fc["run"]["run_id"], "swarm_model": out["model"]}))
+            except Exception as e:
+                rows.append(registry.record({**base, "source": "swarm-baseline", "status":"failed","reason":str(e)}))
+        return {"experiments": rows, "note": "Externally timestamp commitments before outcomes for a public prospective record; a local hash chain is insufficient."}
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def experiment_mature() -> dict:
+    """Settle registered daily forecasts whose horizons elapsed using rebased Yahoo adjusted
+    prices. Append-only; errors remain visible. Does not correct earlier settlements."""
+    try:
+        report = registry.scoreboard()
+        results = []
+        for e in report["experiments"]:
+            if e["status"] != "forecast" or e["settlement"]:
+                continue
+            try:
+                event = events.validate(e["event_contract"])
+                after = data.bars_after(e["symbol"], e["as_of"], event["horizon_days"], event["reference_price"])
+                if len(after) < event["horizon_days"]:
+                    results.append({"id":e["id"],"status":"open"})
+                    continue
+                price = float(after["Close"].iloc[-1])
+                import math
+                value = math.log(price/event["reference_price"]) if event["return_convention"] == "log" else price/event["reference_price"]-1
+                outcome = events.label(value,event["flat_band"])
+                results.append(registry.settle(e["id"], outcome, "Yahoo adjusted history rebased to saved anchor; unofficial provider", str(after.index[-1].date())))
+            except Exception as ex:
+                results.append({"id":e["id"],"status":"error","error":str(ex)})
+        return {"results":results,"scoreboard":registry.scoreboard()}
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def market_sandbox(steps: int = 120, seed: int = 7, reactions: list[dict] | None = None,
+                   liquidity: float = 1, persistence: float = 20) -> dict:
+    """Experimental synthetic limit order book with cash/inventory constraints, cancellation,
+    price-time priority and conserved ledgers. Separate from the calibrated-return swarm;
+    not an exchange replica or a forecast. Inspect tape, executions and participant budgets."""
+    try:
+        request = {"steps": steps, "seed": seed, "reactions": reactions, "liquidity": liquidity, "persistence": persistence}
+        out = microstructure.simulate(**request)
+        out["run"] = runs.create("market-sandbox", request, {"data_kind": "synthetic"}, out)
+        return out
+    except Exception as e:
+        return _err(e)
+
+
+@mcp.tool()
+def journal_export() -> dict:
+    """Export the transactional journal to interoperable JSONL, atomically."""
+    try:
+        return journal.export()
+    except Exception as e:
+        return _err(e)
+
+
+from . import research_tools
+research_tools.register(mcp)
 
 
 def main() -> None:

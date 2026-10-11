@@ -7,6 +7,7 @@ position never exceeds max_position_pct of capital. Quantity is rounded down to 
 from __future__ import annotations
 
 import math
+from . import validation
 
 
 def stop_multiple(horizon_days: int) -> float:
@@ -26,10 +27,25 @@ def build_plan(
     range_high: float | None = None,
     range_low: float | None = None,
     allow_short: bool = False,
+    quote_unit_scale: float = 1.0,
+    contract_multiplier: float = 1.0,
+    fx_to_account: float = 1.0,
+    quantity_step: float | None = None,
+    cost_bps: float = 0.0,
 ) -> dict:
-    direction = direction.upper()
-    if price <= 0 or atr <= 0:
-        raise ValueError("price and atr must be positive")
+    direction = validation.direction(direction)
+    price = validation.number(price, "price", 1e-12)
+    atr = validation.number(atr, "atr", 1e-12)
+    validation.integer(horizon_days, "horizon_days")
+    capital = validation.number(capital, "capital", 0)
+    risk_pct = validation.number(risk_pct, "risk_pct", .01, 5)
+    max_position_pct = validation.number(max_position_pct, "max_position_pct", .01, 100)
+    validation.integer(lot_size, "lot_size", 1, 10**9)
+    scale = validation.number(quote_unit_scale, "quote_unit_scale", 1e-12)
+    multiplier = validation.number(contract_multiplier, "contract_multiplier", 1e-12)
+    fx = validation.number(fx_to_account, "fx_to_account", 1e-12)
+    costs = validation.number(cost_bps, "cost_bps", 0, 1000)
+    step = validation.number(quantity_step if quantity_step is not None else lot_size, "quantity_step", 1e-12)
     if direction == "SIDEWAYS":
         return {
             "side": "none",
@@ -68,24 +84,30 @@ def build_plan(
     }
     if stop <= 0:
         plan["warning"] = "Stop at or below zero: volatility is too high for this horizon. Shorten the horizon or skip."
+        plan["side"] = "none"
+        plan["sizing_status"] = "blocked: invalid stop geometry"
+        return plan
 
     if capital and capital > 0:
         risk_budget = capital * risk_pct / 100
-        qty = math.floor(risk_budget / risk_per_unit)
-        cap_qty = math.floor(capital * max_position_pct / 100 / price)
+        unit_value = price * scale * multiplier * fx
+        unit_risk = (risk_per_unit + price * costs / 10000) * scale * multiplier * fx
+        qty = risk_budget / unit_risk
+        cap_qty = capital * max_position_pct / 100 / unit_value
         capped = qty > cap_qty
         qty = min(qty, cap_qty)
-        lot = max(1, int(lot_size))
-        qty = (qty // lot) * lot
+        qty = round(math.floor(min(qty, cap_qty) / step) * step, 10)
         plan["sizing"] = {
             "capital": capital,
             "risk_pct": risk_pct,
             "risk_budget": round(risk_budget, 2),
             "quantity": qty,
-            "lot_size": lot,
-            "position_value": round(qty * price, 2),
-            "position_pct_of_capital": round(qty * price / capital * 100, 2),
-            "loss_at_stop": round(qty * risk_per_unit, 2),
+            "lot_size": lot_size, "quantity_step": step,
+            "position_value": round(qty * unit_value, 2),
+            "position_pct_of_capital": round(qty * unit_value / capital * 100, 2),
+            "loss_at_stop": round(qty * unit_risk, 2),
+            "units": {"quote_unit_scale": scale, "contract_multiplier": multiplier, "fx_to_account": fx},
+            "round_trip_cost_bps": costs,
             "capped_by_max_position_pct": capped,
         }
         if qty == 0:

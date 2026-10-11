@@ -10,7 +10,7 @@
     {
       "name": "tradefloor",
       "source": "./",
-      "description": "A trading desk for any market: analysts, bull/bear debate, trader, risk committee and portfolio manager over deterministic, point-in-time market data. Direction with calibrated probabilities, a sized trade plan, and a journal that scores every call.",
+      "description": "An open financial research desk and scenario lab: deterministic market tools, agent debate, frozen replay, assumption sweeps, evidence and scored forecasts. Historical availability limits are explicit. Research software; no orders or demonstrated edge.",
       "category": "finance",
       "tags": [
         "trading",

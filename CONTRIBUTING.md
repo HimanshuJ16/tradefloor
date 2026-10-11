@@ -6,7 +6,7 @@ From the repo root:
 
 ```
 python tools/build.py --check                                    # host files match sources
-uv run --project server --group dev pytest tests server/tests    # offline, about 2 seconds
+uv run --project server --group dev pytest tests server/tests    # offline, includes real stdio transport
 uv run --project server python server/scripts/check_markets.py   # live: every registry symbol
 uv run --project server python server/scripts/smoke.py           # live: every MCP tool over stdio
 claude plugin validate --strict .claude-plugin/plugin.json
@@ -20,7 +20,7 @@ Never edit a generated file. The sources are:
 |---|---|
 | `rules/tradefloor.md` | the protocol every host's instruction file carries |
 | `roles/*.md` | the twenty-three desk roles (frontmatter: `tier` quick or deep, `web` live-only or never, `desk` analyze, scout, swarm or both) |
-| `skills/*/SKILL.md` | the six procedures, shared by every host that loads skills |
+| `skills/*/SKILL.md` | the procedures, shared by every host that loads skills |
 | `tools/adapters.py` | manifests, MCP launch spec, commands, per-host agent formats |
 | `server/pyproject.toml` | the version every manifest carries |
 
@@ -45,6 +45,11 @@ Hosts and their state: [docs/agent-portability.md](docs/agent-portability.md).
 - **No order execution.** Broker integrations are out of scope for this repository.
 
 ## Adding a data vendor
+
+For scenario/registry work, read [research lab contracts](docs/research-lab.md). Preserve
+the exact event definition in calibration, settlement and comparison. Keep synthetic
+fixtures free of provider data. Validate conservation for order-book changes and outcome
+horizon separation for learning gates. Do not claim prospective skill from fixture scores.
 
 Put the fetcher in `data.py` behind the same shape as the existing ones, and keep keys
 optional (read from environment variables, never required). Document the variable in

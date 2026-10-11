@@ -48,7 +48,7 @@ OPENING = [(101, 99, 100)] * 3  # opening range 99 to 101, size 2
 
 def test_orb_long_hits_target():
     r = pm.simulate_orb(_session(OPENING + [(101.5, 100.5, 101.2), (105.5, 101, 105)]), adr_abs=10)
-    assert r["side"] == "LONG" and r["exit"] == "target" and r["r_multiple"] == 2.0
+    assert r["side"] == "LONG" and r["exit"] == "target" and r["r_multiple"] == pytest.approx(1.7273)  # entry gaps above trigger
 
 
 def test_orb_short_stopped():
@@ -65,7 +65,7 @@ def test_orb_skips_wide_range_and_respects_side():
 
 def test_orb_close_exit_in_r():
     r = pm.simulate_orb(_session(OPENING + [(101.5, 100.8, 101.4), (102, 101, 102)]), adr_abs=10)
-    assert r["exit"] == "close" and r["r_multiple"] == pytest.approx(0.5)
+    assert r["exit"] == "close" and r["r_multiple"] == pytest.approx(0.25)
 
 
 def _pool(n_days, p_same, strong=True):

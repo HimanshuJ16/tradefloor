@@ -26,5 +26,5 @@ Arguments: `$ARGUMENTS`
    and name, in one line each, what the desk missed.
 
 If the journal is empty, say so and point to the `direction` and `analyze` procedures,
-which record calls automatically. The journal lives in `~/.tradefloor/journal.jsonl` and
+which record calls automatically. The journal lives in `~/.tradefloor/journal.sqlite3` and
 is shared by every agent host.

@@ -21,6 +21,10 @@ SYMBOL, HORIZON, RUN_DIR, and the list of debate files.
    are the prior. Adjust them for evidence the price model cannot see: an earnings date
    or scheduled event inside HORIZON, a material catalyst, a fundamental break. Each
    probability may move at most 0.10 in total, and every move needs a stated reason.
+   Assign each deciding piece of evidence an ID with its exact tool/file source and text.
+   Output `evidence` and one aggregate `adjustments` entry per changed class:
+   `{ "class": "up", "delta": 0.03, "reason": "...", "evidence_ids": ["E1"] }`.
+   Use class keys up/down/flat. Call `decision_validate` before writing the plan.
    An earnings date inside HORIZON should move probability toward p_flat or widen the
    range. It should not add conviction.
    Direction follows the quant model's rule: UP if p_up >= p_down + 0.08, DOWN if

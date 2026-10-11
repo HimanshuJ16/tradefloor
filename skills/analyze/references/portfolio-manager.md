@@ -14,7 +14,8 @@ SYMBOL, NAME, EXCHANGE, CURRENCY, KIND, AS_OF, HORIZON, HORIZON_DAYS, RUN_DIR, D
 1. Read `20-research-plan.md`, `30-trade-proposal.md`, all `40-risk-*` files, and
    `01-market.md` for the quant prior and base rates.
 2. Decide: rating, direction, final probabilities (start from the research plan's
-   adjusted numbers; you may move them at most 0.05 further with a reason), and the size
+   adjusted numbers; further changes must remain within 0.10 of the original quant prior
+   in each class, with evidence and aggregate deltas), and the size
    multiplier on the trader's proposal (0, 0.5, 1, or 1.5; above 1 only if all three risk
    seats approve). Direction follows the quant model's rule: UP if p_up >= p_down +
    0.08, DOWN if p_down >= p_up + 0.08, otherwise SIDEWAYS.
@@ -22,9 +23,11 @@ SYMBOL, NAME, EXCHANGE, CURRENCY, KIND, AS_OF, HORIZON, HORIZON_DAYS, RUN_DIR, D
    where a value does not exist (for example stop on a no-trade call).
 4. Call `journal_record(entry)` with: symbol, as_of (the forecast's as_of date from
    01-market.md, not "today"), horizon_days, price (the last close in 01-market.md),
-   direction, p_up, p_down, base_p_up (base_rates.up from 01-market.md), flat_band_pct
-   (0.25 x horizon_1sigma_pct from 01-market.md), rating, stop, targets, run_dir, and
-   source "full".
+   direction, p_up, p_down, p_flat, base_p_up (base_rates.up from 01-market.md),
+   base_probabilities (the whole base_rates object), event_contract (copy exactly from
+   direction_forecast; never reconstruct its band), rating, stop, targets, run_dir,
+   source "full", quant_prior with up/down/flat keys, evidence objects with IDs and text,
+   and adjustments with class/delta/reason/evidence_ids. Call `decision_validate` first.
 
 ## Write `RUN_DIR/50-decision.md`
 ````
@@ -53,7 +56,7 @@ Aggressive: <verdict> / Neutral: <verdict> / Conservative: <verdict> -> <what yo
 ```json
 {"symbol": "", "name": "", "exchange": "", "currency": "", "as_of": "", "horizon": "", "horizon_days": 0,
  "direction": "", "confidence": "", "rating": "", "p_up": 0, "p_down": 0, "p_flat": 0,
- "quant_prior": {"p_up": 0, "p_down": 0, "p_flat": 0}, "range_80pct": [0, 0],
+ "quant_prior": {"up": 0, "down": 0, "flat": 0}, "evidence": [], "adjustments": [], "event_contract": {}, "range_80pct": [0, 0],
  "action": "", "instrument": "", "entry_zone": [0, 0], "stop": null, "targets": [],
  "size_multiplier": 1, "invalidation": "", "review_after_trading_days": 0}
 ```

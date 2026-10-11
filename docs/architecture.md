@@ -2,154 +2,132 @@
 
 ```mermaid
 flowchart LR
-  U[User: symbol or index, horizon, as_of] --> C[Coordinator skill]
-  C --> R[resolve_symbol]
-  subgraph Analysts [Analysts, parallel]
-    MA[Technical] --- FA[Fundamentals or macro] --- NA[News and macro] --- SA[Sentiment]
-  end
-  R --> Analysts
-  Analysts -->|01-04 report files| D{Bull vs bear, n rounds}
-  D --> RM[Research manager: audit, adjust prior, rate]
-  RM --> T[Trader: trade_plan]
-  T --> RK{Risk committee: aggressive, neutral, conservative}
-  RK --> PM[Portfolio manager: decision + journal_record]
-  PM --> OUT[Direction, probabilities, range, plan]
-  subgraph MCP [tradefloor MCP server: deterministic, point-in-time]
-    Q[direction_forecast] --- TR[technical_report] --- F[fundamentals] --- N[news] --- M[macro_context] --- TP[trade_plan] --- J[journal]
-  end
-  MA -.-> MCP
-  T -.-> MCP
-  PM -.-> J
+  UI[Local UI / static synthetic demo] --> LAB[Scenario lab]
+  CLI[CLI / MCP] --> LAB
+  CLI --> DESK[Analyst and debate roles]
+  DATA[Provider / user snapshot / fictional fixture] --> FREEZE[Frozen inputs and event contract]
+  FREEZE --> QUANT[Price-only quant]
+  FREEZE --> SWARM[Behavioral return scenarios]
+  QUANT --> LAB
+  SWARM --> LAB
+  LAB --> CHECK[Baselines / fragility / evidence / falsification]
+  CHECK --> RUN[Hashed bundle / fork / replay]
+  DESK --> VALID[Decision validation]
+  VALID --> J[Transactional journal]
+  RUN --> REG[Experiment registry]
+  REG --> SCORE[Paired evaluation and holdout review]
+  BOOK[Separate constrained order book] --> RUN
 ```
 
-## Layers
+## Numerical core
 
-**MCP server (`server/src/tradefloor/`)**. All data and all arithmetic.
-
-| Module | Job |
+| Module | Responsibility |
 |---|---|
-| `markets.py` | Venue registry (suffix, currency, timezone, benchmark, vol index, FX pair, news locale), index aliases with tradeable proxies, symbol resolution, horizon parsing |
-| `data.py` | yfinance prices (adjusted, truncated at `as_of`), fundamentals, Google News RSS, options and analyst data, 15-minute in-memory cache, stdout guarded |
-| `indicators.py` | SMA, EMA, RSI, MACD, Bollinger, ATR, ADX, stochastic, OBV, realized and EWMA vol, swing levels, relative strength, beta |
-| `forecast.py` | The direction model (below) |
-| `plan.py` | Entry zone, ATR stop scaled to horizon, R-multiple targets, risk-based sizing with lot rounding and a position cap |
-| `journal.py` | Append-only JSONL of calls in `~/.tradefloor/`, shared by every host; scoring once the horizon elapses |
-| `settings.py` | User settings: env vars, then `~/.tradefloor/config.json`, then defaults; unexpanded `${...}` placeholders ignored |
-| `intraday.py` | Intraday universes, session features (VWAP, relative volume by time of day, efficiency, opening range), momentum score, calibration on past sessions, trigger-based plans |
-| `premarket.py` | Pre-market model: features known before the session, big-move and trend-day calibration with isotonic smoothing, a two-standard-error direction lean, two-sided opening-range plans and their simulation |
-| `scout.py` | The intraday scan: screen the universe, fetch 5-minute bars, cut at `at`, choose pre-market or live mode, calibrate, rank |
-| `swarm.py` | The market swarm: participant rosters, an agent-based simulation of thousands of traders over Monte Carlo worlds, calibrated to the stock's horizon spread, tails and drift; baseline, scenario, shift and attribution |
-| `server.py` | 17 MCP tools, `quick_direction` first; every failure returned as `{"error": ...}` |
-| `cli.py` | The same tools as `tradefloor <tool> key=value`, for agents with a shell but no MCP |
+| markets / calendars | Symbol metadata, horizon parsing, exchange schedules and explicit proxies |
+| data / snapshots | Provider reads, completed bars, bounded cache, immutable frame/universe receipts |
+| indicators / forecast | Causal price features, similar-setup calibration, shrinkage and range |
+| events | Versioned return convention, fixed flat band, reference price and loss functions |
+| swarm | Regional or generic participant archetypes, conditional return worlds and paired shifts |
+| lab | Synthetic scenarios, independent-return baseline, evidence, sensitivity and falsification |
+| microstructure | Separate experimental price-time book with cash/inventory reservations and conservation |
+| plan / paper | Unit-aware sizing and conservative OHLC execution approximations |
+| runs | Frozen numerical inputs, report snapshots, runtime/source hashes, safe import and lineage |
+| storage / journal / registry | SQLite transactions, legacy migration, complete-status experiment history |
+| evaluation / portfolio | Paired/date-clustered scores, embargoed holdout gates, shock/covariance arithmetic |
+| server / cli / demo | Same tool contracts over stdio/CLI; separate loopback UI and standalone export |
 
-**Roles (`roles/`)**. Twenty-three desk roles, host-neutral, each tagged with its desk
-(`analyze`, `scout`, `swarm`, or both for the three risk seats). `tools/build.py` renders them as
-Claude Code subagents (`hosts/claude/agents/`: analysts and debaters on `sonnet`, judges on
-the session model, mirroring the paper's quick/deep split, no Bash or Edit), portable
-subagents for Antigravity (`agents/`), and single-context references for Codex
-(`skills/<skill>/references/`). Only analysts can browse, and only in live runs.
+## Quant event
 
-**Skills (`skills/`)**. `analyze` (the single-instrument desk), `scout` (the intraday
-desk), `direction` (one `quick_direction` call), `scan` (rank a watchlist), `review`
-(score the journal). Host-neutral: defaults come from the server, and the desk skills name
-each host's subagents with a fallback to playing the roles in turn.
+For horizon h, historical features use information through each feature date. Labels are
+forward log returns whose windows have matured by the cutoff. The flat threshold is
+0.25 × rolling 63-session log-return standard deviation × sqrt(h), with at least 40
+returns. The same frozen threshold/reference goes into the current event contract.
 
-**Hosts.** Manifests and instruction files for each agent host are generated from the
-sources above; see [agent-portability.md](agent-portability.md).
+A score defines similar setups (one historical quintile). Conditional label frequencies
+shrink toward unconditional rates using approximate n_eff = n/h and 20 pseudo-observations.
+This overlap heuristic does not eliminate serial dependence. Direction requires a
+0.08 difference between UP and DOWN. Displayed 80% ranges use max(EWMA, past-year)
+volatility and a normal approximation; their volatility is not the event's flat band.
 
-**Shared state.** The run folder `tradefloor-runs/<symbol>/<date>-<horizon>/`. Each role
-writes one file and later roles read files, not chat. This is the paper's "structured
-documents in a global state", made inspectable: the user can open every intermediate
-report.
+## Two simulation models
 
-## The direction model
+The behavioral swarm aggregates participant demand into returns. Group weights, reaction
+scale, fair-value pull and persistence are assumptions. It has no cash ledger/order book.
+Common random numbers pair baseline/scenario worlds; shift intervals measure sampling
+uncertainty conditional on the chosen model, excluding behavioral uncertainty. Group
+contributions are simulated log-demand contributions, not observed institutional flows.
 
-For horizon h trading days:
+The microstructure sandbox has a real synthetic limit-order matching mechanism:
+price-time priority, partial fills, cash/inventory reservations, cancellation release,
+and ledger conservation. It prevents self trades, borrowing and overselling. Its quotes
+and reaction scale are arbitrary and not fitted to an exchange. Do not interpret its
+single tape as a probability distribution or real market impact.
 
-1. **Setup score** in [-1, 1] for every past day: weighted sum of trend (distance from
-   200-day plus 50-day slope), 3-month momentum, 12-1 month momentum, MACD histogram over
-   ATR, RSI reversal (short horizons only) and 3-month relative strength against the
-   exchange benchmark. Each factor is divided by its expanding standard deviation known at
-   that day and passed through tanh. Weights shift from reversal and MACD at short
-   horizons toward 12-1 momentum at long ones.
-2. **Labels.** Each past day whose forward window closes on or before `as_of` gets its
-   h-day forward log return, labelled up, down or flat. Flat means inside 0.25 of that
-   day's h-day volatility.
-3. **Similar setups.** Today's score falls in one quintile of the historical score
-   distribution. The label frequencies inside that quintile are the conditional rates.
-4. **Shrinkage.** Forward windows overlap, so n_eff = n / h. The conditional rates are
-   blended with the unconditional base rates with weight n_eff / (n_eff + 20).
-5. **Outputs.** Direction (UP or DOWN if one probability beats the other by 0.08,
-   otherwise SIDEWAYS); tilt, the change in (p_up - p_down) against the base rate;
-   confidence from the edge and n_eff; an 80% range from EWMA volatility times the square
-   root of h, centred on the shrunk median drift of similar setups.
+## Agents and reports
 
-`tests/test_indicators_forecast.py` checks that factors computed on truncated history
-equal the same rows computed on full history (no look-ahead), and that a driftless random
-walk shows no large edge.
+Twenty-three host-neutral role sources live in roles/. The generator produces host agent
+formats and skill references. Analysts can browse only in live research. A host may delegate
+or play roles serially according to its capabilities; numerical tools require no agents.
 
-## The intraday desk (`scout`)
+run_begin allocates a UUID workspace and captures settings and available protocol/role
+sources. Reports are mutable working files until run_finalize freezes their contents/hashes
+into a child bundle. Numeric direction/swarm/scenario calls automatically save frozen
+price inputs and runtime/source hashes. Wheels lack repository role sources, so host prompt
+receipts are still needed when prompts are unavailable.
 
-```
-intraday_scan -> tape, catalyst, regime analysts (parallel) -> momentum advocate vs skeptic
-             -> desk head (0 to 3 trades) -> intraday trader -> risk committee (parallel)
-             -> intraday portfolio manager -> journal (graded on 5-minute bars by the close)
-```
+Final full-desk decisions must provide original prior, normalized final probabilities,
+cited evidence IDs and aggregate deltas. Each class stays within 0.10 of its original
+prior, including portfolio-manager changes. Python validates the structure/budget;
+factual evidence and reasoning still require human review.
 
-Universe: the market's most-traded ordinary shares from Yahoo's screener. Market cap
-sorting alone returns foreign cross-listings first on venues such as Xetra, Milan, SIX and
-B3, and Yahoo's quote fields have no reliable home-country flag, so candidates are ranked
-by local traded value, with BDRs, Milan's foreign segment and preferred lines dropped.
+## Intraday
 
-Scoring at k bars into a session: direction is the side of VWAP when it agrees with the
-move since the open; strength weights relative volume at this time of day (0.30), move
-efficiency (0.25), move size against average daily range (0.15), an opening-range break
-in the direction (0.15) and strength against the index (0.15). Calibration scores every
-stock on each earlier session at the same k and labels the rest-of-session outcome
-(follow-through, fade, or flat inside 0.1 ADR); the candidate's quintile gives its rates,
-shrunk toward the pooled base rate with n_eff capped at three per session because stocks
-move together.
+Scans use 5-minute OHLCV, remove off-session/lunch bars and truncate fully closed bars.
+Historical universes come from prior local receipts when available; current selection is
+explicitly flagged. Historical earnings boosts are disabled. Delayed/stale candidates
+abstain from a plan. Premarket targets use venue schedules rather than weekend guesses.
 
-Pre-market (before the open, closed, or under 15 minutes in): features known before the
-target session, each stock against its own last 20 sessions: yesterday's traded value and
-range as multiples of normal, yesterday's move and close location. The in-play score is
-the mean pooled percentile of the two multiples. Outcomes: big move (session range at
-least 1.3x the 20-session average) and trend day. Rates per decile of the in-play score
-are smoothed to be non-decreasing (pool-adjacent-violators) and shrunk to the base rate.
-A direction lean is shown only when strong-day continuation in the pool departs from 50%
-by two standard errors. Earnings on the target session put a stock at the top with a gap
-warning. Plans are two-sided 15-minute opening-range breaks; `simulate_orb` grades them.
+Live continuation is a signed close-to-signal return beyond 0.1 ADR at the close. It is
+distinct from a paper win. Paper trades use adverse entry/stop gaps, stop-first ambiguity,
+optional supplied costs/slippage and square-off. Pullback confirmation occurs at bar close;
+a target touched earlier in that bar cannot count. Real tick order, depth and fills remain
+unknown. Intraday provider retention can prevent later grading.
 
-Journal grading for intraday calls: triggered or not; after the trigger, the first of the
-stop or the first target, with a bar touching both counted as the stop; otherwise the
-close. Results in R multiples. Pre-market picks are graded on their target session: did
-the big move come (with a Brier score for p_big_move), and how did the two-sided
-opening-range trade do.
+## Evaluation and trust boundaries
 
-## Cost per analysis
+Journal scoring uses saved contracts and rebased adjusted daily history. Binary UP scores
+use the actual UP event, not any positive return. Multiclass Brier sums the three losses
+(0–2); log loss clips probabilities at 1e-12. References use exactly the same rows.
 
-| Depth | Agent calls | Notes |
-|---|---|---|
-| quick (`/tradefloor:direction`) | 0 | one `quick_direction` call |
-| standard | 12 | 4 analysts, 2 debaters x 1 round, manager, trader, 3 risk seats, PM |
-| deep | 17 | 2 debate rounds, 2 risk rounds |
-| scout quick | 0 | one `intraday_scan` call: 10 to 15 seconds live, 20 to 30 seconds pre-market |
-| scout standard | 11 | 3 analysts, 2 debaters, desk head, trader, 3 risk seats, PM |
+The registry retains forecast/abstained/failed statuses, local hash-chain commitments and
+append-only settlements. Cross-source comparisons require matching event contracts and
+outcomes. Manual settlements are explicitly unverified. Date-clustered paired intervals
+do not fix selection bias or overlapping-horizon dependence. Learning review requires a
+later untouched period after all training label_end dates and never changes a model.
 
-Analysts run in parallel, as do the debaters in each round and the risk seats.
+Truncation is not archival availability. Yahoo adjusted vintages, current universes and
+RSS cannot establish a historically available dataset. Local content hashes are not
+external timestamps. A public prospective claim needs externally published commitments,
+licensed sources and real elapsed outcomes.
 
-## Point in time
+MCP is stdio. The optional loopback UI is single-user, strict Host/Origin and bounded JSON.
+Public hosting uses only the static synthetic artifact. There is no broker execution,
+authentication or tenant isolation. A manual Pages workflow deploys only the synthetic
+static demo; it is not a hosted research API.
 
-Every dated tool takes `as_of` and returns nothing after it: price history is cut at
-`as_of`, news is filtered by publish time, and the forecast only labels days whose forward
-window closed by `as_of`. Sources that are only available as current snapshots
-(fundamentals, analyst targets, short interest, options, Reddit) carry
-`point_in_time: false`, and agents are told to drop them in historical runs. Web search
-is disabled for historical runs.
+## Persistent research workspace (0.3)
 
-## What is deliberately absent
+`research.py` owns optimistic project revisions, lineage-preserving archives, comparisons
+and finite-grid counterexamples. `evidence.py` validates anchored sources and dependency
+graphs; retractions mark affected claims for review. `schemas.py` checks imported run
+semantics after the content hash. Original immutable receipts are never migrated in place.
 
-- **Order execution.** No broker integration. The plan is a suggestion a human places.
-- **Index constituent lists.** They change; a stale list produces survivorship bias.
-- **Fitted models.** Fitting weights per symbol on a few hundred effective observations
-  overfits. The empirical conditional frequencies are the calibration.
+`timeline.py` stores append-only information vintages. `arena.py` standardizes shared-event
+forecasts and paired moving-block evaluation. `intelligence.py` stores assessments,
+outcomes, protocols and unverified witness receipts. `advanced.py` contains bounded
+financial baselines. Public contracts are registered by `research_tools.py` in CLI/MCP.
+
+`jobs.py` uses SQLite transactions, idempotency, leases and token-guarded completion.
+The local demo owns one worker; crash recovery retries saved inputs after lease expiry.
+The dependency-free workspace polls job state and preserves canonical receipt strings.
+See [workspace.md](workspace.md) for numerical, data and cancellation limits.

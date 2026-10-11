@@ -107,11 +107,11 @@
     <text x="700" y="364" fill="#374151">volatility, tails and normal drift</text>
     <text x="700" y="396" font-weight="700">Baseline vs scenario</text>
     <text x="700" y="418" fill="#374151">normal behaviour, then with the</text>
-    <text x="700" y="436" fill="#374151">crowd's reactions: the shift is the news</text>
+    <text x="700" y="436" fill="#374151">supplied reactions: a conditional shift</text>
   </g>
   <rect x="696" y="460" width="282" height="60" rx="14" fill="#FFFFFF" stroke="#93C5FD"/>
-  <text x="837" y="486" text-anchor="middle" font-size="13" font-weight="600" fill="#1E3A8A">baseline 80% range held 78% of real</text>
-  <text x="837" y="505" text-anchor="middle" font-size="13" font-weight="600" fill="#1E3A8A">1-month outcomes (NIFTY, 168 cases)</text>
+  <text x="837" y="486" text-anchor="middle" font-size="13" font-weight="600" fill="#1E3A8A">behavioral coefficients are assumptions</text>
+  <text x="837" y="505" text-anchor="middle" font-size="13" font-weight="600" fill="#1E3A8A">not measured participant flows</text>
 
   <line x1="1004" y1="300" x2="1034" y2="300" stroke="#6B7280" stroke-width="3" marker-end="url(#arrow)"/>
 
@@ -125,8 +125,8 @@
     <text x="1060" y="136" fill="#374151">quant model · what-if</text>
     <text x="1060" y="170" font-weight="700">Fan of outcomes</text>
     <text x="1060" y="192" fill="#374151">10th, 50th, 90th percentile by day</text>
-    <text x="1060" y="226" font-weight="700">Who moved the price</text>
-    <text x="1060" y="248" fill="#374151">each group's push, in percent</text>
+    <text x="1060" y="226" font-weight="700">Simulated group contributions</text>
+    <text x="1060" y="248" fill="#374151">model demand, not observed flows</text>
     <rect x="1060" y="262" width="120" height="12" rx="3" fill="#16A34A"/><text x="1188" y="273" font-size="12" fill="#374151">domestic funds</text>
     <rect x="1060" y="282" width="84" height="12" rx="3" fill="#DC2626"/><text x="1152" y="293" font-size="12" fill="#374151">foreign institutions</text>
     <rect x="1060" y="302" width="36" height="12" rx="3" fill="#DC2626"/><text x="1104" y="313" font-size="12" fill="#374151">retail</text>

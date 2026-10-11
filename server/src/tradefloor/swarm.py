@@ -30,7 +30,7 @@ from dataclasses import asdict, dataclass
 import numpy as np
 import pandas as pd
 
-from . import indicators as ind
+from . import events, indicators as ind, validation
 
 TREND_WINDOW = 5
 KAPPA_F = 0.02      # daily pull toward fair value per unit of log gap, in sigma units
@@ -78,8 +78,15 @@ REGION_OF_EXCHANGE = {"NSE": "in", "BSE": "in", "US": "us", "FUT": "us", "CRYPTO
 def roster(exchange_code: str, weights: dict[str, float] | None = None) -> list[Group]:
     groups = ROSTERS.get(REGION_OF_EXCHANGE.get(exchange_code, "default"), ROSTERS["default"])
     if weights:
+        unknown = set(weights) - {g.id for g in groups}
+        if unknown:
+            raise ValueError(f"unknown weight groups: {sorted(unknown)}")
+        for key, value in weights.items():
+            validation.number(value, f"weights.{key}", 0, 1000)
         groups = [Group(**{**asdict(g), "weight": float(weights.get(g.id, g.weight))}) for g in groups]
-    total = sum(g.weight for g in groups) or 1.0
+    total = sum(g.weight for g in groups)
+    if total <= 0:
+        raise ValueError("group weights must have a positive total")
     return [Group(**{**asdict(g), "weight": g.weight / total}) for g in groups]
 
 
@@ -93,13 +100,20 @@ class Reaction:
 
     @staticmethod
     def parse(d: dict) -> "Reaction":
-        clip = lambda v, lo, hi, dflt: float(min(hi, max(lo, float(d.get(v, dflt) if d.get(v) is not None else dflt))))  # noqa: E731
-        return Reaction(group=str(d["group"]), sentiment=clip("sentiment", -1, 1, 0), conviction=clip("conviction", 0, 1, 0.5),
-                        persistence_days=clip("persistence_days", 0.5, 60, 5), fair_value_shift_pct=clip("fair_value_shift_pct", -50, 50, 0))
+        if not isinstance(d, dict) or not d.get("group"):
+            raise ValueError("reaction requires a group")
+        if set(d) - {"group", "sentiment", "conviction", "persistence_days", "fair_value_shift_pct"}:
+            raise ValueError("unknown reaction fields")
+        val = lambda k, lo, hi, default: validation.number(default if d.get(k) is None else d[k], k, lo, hi)
+        return Reaction(group=str(d["group"]), sentiment=val("sentiment", -1, 1, 0), conviction=val("conviction", 0, 1, .5),
+                        persistence_days=val("persistence_days", .5, 60, 5), fair_value_shift_pct=val("fair_value_shift_pct", -50, 50, 0))
 
 
 def stock_profile(df: pd.DataFrame, horizon_days: int) -> dict:
     """What the simulation must reproduce: daily vol, tail thickness, and normal drift."""
+    validation.integer(horizon_days, "horizon", 1, 252)
+    if len(df) < 41 or not np.isfinite(df["Close"]).all() or (df["Close"] <= 0).any():
+        raise ValueError("simulation requires 41 finite positive closes")
     lr = ind.log_returns(df["Close"]).dropna()
     # Never assume the next weeks are calmer than the past year: on 2025-26 NIFTY and S&P
     # stocks, the current (EWMA) volatility alone gave 80% ranges that held 69-73% of outcomes.
@@ -109,7 +123,11 @@ def stock_profile(df: pd.DataFrame, horizon_days: int) -> dict:
     df_t = float(np.clip(4 + 6 / max(kurt, 0.1), 3.0, 30.0))  # Student-t with this excess kurtosis
     hist = (np.log(df["Close"]).shift(-horizon_days) - np.log(df["Close"])).dropna()
     mu_h = float(hist.median()) if len(hist) > 60 else 0.0  # same full history as the quant model's base rates
-    return {"sigma_d": sigma_d, "df_t": df_t, "mu_daily": mu_h / max(horizon_days, 1), "price": float(df["Close"].iloc[-1])}
+    if not np.isfinite(sigma_d) or sigma_d <= 0:
+        raise ValueError("simulation requires nonzero measurable volatility")
+    band = events.current_band(df["Close"], horizon_days)
+    return {"sigma_d": sigma_d, "df_t": df_t, "mu_daily": mu_h / max(horizon_days, 1), "price": float(df["Close"].iloc[-1]),
+            "flat_band": band}
 
 
 def _t_noise(rng: np.random.Generator, shape, df_t: float) -> np.ndarray:
@@ -171,7 +189,7 @@ def calibrate_noise(profile: dict, groups: list[Group], horizon: int, agents: in
 
 def _summary(sim: dict, profile: dict, horizon: int) -> dict:
     fin = sim["final"]
-    band = FLAT_BAND_SIGMA * profile["sigma_d"] * math.sqrt(horizon)
+    band = profile["flat_band"]
     q = lambda p: float(np.expm1(np.quantile(fin, p)) * 100)  # noqa: E731
     fan_days = sorted({max(1, horizon // 4), max(1, horizon // 2), max(1, 3 * horizon // 4), horizon})
     return {
@@ -189,6 +207,12 @@ def _summary(sim: dict, profile: dict, horizon: int) -> dict:
 
 def run(df: pd.DataFrame, exchange_code: str, horizon: int, reactions: list[dict] | None = None, runs: int = 1000,
         agents: int = 2000, seed: int = 7, weights: dict[str, float] | None = None) -> dict:
+    horizon = validation.integer(horizon, "horizon", 1, 252)
+    runs = validation.integer(runs, "worlds", 100, 3000)
+    agents = validation.integer(agents, "agents", 200, 5000)
+    seed = validation.integer(seed, "seed", 0, 2**32 - 1)
+    if horizon * runs * agents > 150_000_000:
+        raise ValueError("simulation exceeds 150 million agent-world-days; reduce horizon, worlds or agents")
     profile = stock_profile(df, horizon)
     groups = roster(exchange_code, weights)
     noise = calibrate_noise(profile, groups, horizon, agents, seed)
@@ -199,11 +223,22 @@ def run(df: pd.DataFrame, exchange_code: str, horizon: int, reactions: list[dict
         "calibration": {"daily_vol_pct": round(profile["sigma_d"] * 100, 3), "tail_df": round(profile["df_t"], 1),
                         "normal_drift_pct_per_day": round(profile["mu_daily"] * 100, 4), "noise_scale": round(noise, 3)},
         "baseline": _summary(base, profile, horizon),
+        "event_contract": events.contract(horizon, profile["flat_band"], str(df.index[-1].date()), profile["price"]),
+        "model": {"version": "behavioral-scenario-v2", "type": "conditional scenario, not an observed order book",
+                  "group_roster": "regional" if exchange_code in ("NSE", "BSE", "US") else "generic US archetypes",
+                  "uncertainty": "Monte Carlo intervals exclude uncertainty in behavioral assumptions"},
         "assumptions": {"news_push_sigma_day1_if_unanimous": NEWS_BETA, "fair_value_pull_per_day": KAPPA_F,
                         "trend_window_days": TREND_WINDOW, "group_weights": "illustrative defaults, not measured shares"},
     }
     if reactions:
-        parsed = {r.group: r for r in (Reaction.parse(d) for d in reactions)}
+        if len(reactions) > len(groups):
+            raise ValueError("at most one reaction per group")
+        parsed = {}
+        for d in reactions:
+            r = Reaction.parse(d)
+            if r.group in parsed:
+                raise ValueError("duplicate reaction group")
+            parsed[r.group] = r
         unknown = sorted(set(parsed) - {g.id for g in groups})
         scen = _simulate(profile, groups, parsed, horizon, runs, agents, noise, seed)  # same seed: common random numbers
         s = _summary(scen, profile, horizon)
@@ -213,7 +248,16 @@ def run(df: pd.DataFrame, exchange_code: str, horizon: int, reactions: list[dict
                         "median_return_pct": round(s["return_pct"]["p50"] - out["baseline"]["return_pct"]["p50"], 2)}
         attr = [{"group": g.id, "name": g.name,
                  "moved_price_pct": round(float((scen["contrib"][g.id] - base["contrib"][g.id]).mean()) * 100, 2)} for g in groups]
-        out["who_moved_the_price"] = sorted(attr, key=lambda a: -abs(a["moved_price_pct"]))
+        out["simulated_group_contribution"] = sorted(attr, key=lambda a: -abs(a["moved_price_pct"]))
+        out["who_moved_the_price"] = out["simulated_group_contribution"]  # compatibility alias
+        out["attribution_note"] = "Accumulated simulated demand in log-return percentage points; not observed flows or a causal intervention."
+        band = profile["flat_band"]
+        out["shift_mc_interval_95"] = {}
+        for name, comparator in (("p_up", lambda x: x > band), ("p_down", lambda x: x < -band)):
+            paired = comparator(scen["final"]).astype(float) - comparator(base["final"]).astype(float)
+            se = float(paired.std(ddof=1) / math.sqrt(runs))
+            out["shift_mc_interval_95"][name] = {"low": float(paired.mean() - 1.96 * se), "high": float(paired.mean() + 1.96 * se),
+                                                "standard_error": se, "method": "paired worlds, normal approximation; model uncertainty excluded"}
         if unknown:
             out["warning"] = f"Reactions for unknown groups ignored: {unknown}"
     return out

@@ -23,7 +23,7 @@ INSTRUMENT, HORIZON (default `defaults.default_horizon`), WHAT_IF (the text afte
 `what-if`, optional), AS_OF (optional; a past date is a historical run). Call
 `resolve_symbol(INSTRUMENT)` and `swarm_roster(symbol)`.
 
-RUN_DIR = `tradefloor-runs/swarm-<symbol, ^ -> idx->/<AS_OF or today>-<HORIZON>`. Write
+Call `run_begin(kind="swarm-desk", request=<parsed request object>)`; RUN_DIR is its unique `workspace`. Write
 `RUN_DIR/00-request.md` with the request and the roster.
 
 ## 2. Seed

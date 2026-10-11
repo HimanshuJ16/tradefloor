@@ -39,9 +39,11 @@ Tell the user which mode ran and why.
 - SIDE: `long`, `short`, or both (default).
 - DEPTH: `quick` (scan only, no roles), `standard` (default), or `deep` (two debate rounds).
 - MODE: `premarket` or `live` to force one; otherwise automatic.
-- AT: `at "YYYY-MM-DD HH:MM"` in exchange time replays a past moment point-in-time
+- AT: `at "YYYY-MM-DD HH:MM"` in exchange time truncates bars at a past moment
   (within the last ~55 days). A time before the open replays the pre-market view.
   IS_REPLAY = true when given.
+  Inspect `replay_integrity`: current universes are subject to survivorship bias.
+  Historical earnings boosts are disabled; a bar replay alone is not point-in-time research.
 
 ## 2. Scan
 Call `intraday_scan(market=MARKET, top=8, side=SIDE, at=AT, mode=MODE or "auto")`. If it
@@ -49,7 +51,7 @@ returns an error, stop and report it. Note MODE from the result, EXCHANGE, CURRE
 scan time (`as_of`), and SESSION_DATE: `target_session` in premarket mode, `session_date`
 in live mode.
 
-RUN_DIR = `tradefloor-runs/scout-<market with spaces as dashes>/<SESSION_DATE>-<premarket or HHMM of as_of>`.
+Call `run_begin(kind="scout", request=<parsed request object>)`; RUN_DIR is its unique `workspace`.
 Write the tool's full JSON result to `RUN_DIR/00-scan.json`, and the parsed request to
 `RUN_DIR/00-request.md`.
 

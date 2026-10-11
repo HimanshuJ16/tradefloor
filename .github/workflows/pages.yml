@@ -1,0 +1,39 @@
+name: Publish synthetic workspace demo
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - name: Verify numerical and transport contracts
+        run: uv run --locked --project server --group dev pytest -q tests server/tests
+      - name: Export synthetic examples only
+        env:
+          TRADEFLOOR_HOME: ${{ runner.temp }}/tradefloor-pages
+        run: uv run --locked --project server python -m tradefloor.demo --export dist/demo/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/demo
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy reviewed static artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

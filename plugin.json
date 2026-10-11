@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tradefloor",
-  "version": "0.1.1",
-  "description": "A trading desk for any market: analysts, bull/bear debate, trader, risk committee and portfolio manager over deterministic, point-in-time market data. Direction with calibrated probabilities, a sized trade plan, and a journal that scores every call.",
+  "version": "0.3.0",
+  "description": "An open financial research desk and scenario lab: deterministic market tools, agent debate, frozen replay, assumption sweeps, evidence and scored forecasts. Historical availability limits are explicit. Research software; no orders or demonstrated edge.",
   "author": {
     "name": "Himanshu Jangir",
     "url": "https://github.com/HimanshuJ16"
@@ -24,8 +24,8 @@
     "com.openai": {
       "interface": {
         "displayName": "tradefloor",
-        "shortDescription": "Trading desk for any market",
-        "longDescription": "Analysts, a bull/bear debate, a trader, a risk committee and a portfolio manager over point-in-time market data for any exchange. Direction with probabilities, a sized plan, and a scored journal.",
+        "shortDescription": "Financial research and scenario lab",
+        "longDescription": "An open financial research desk and scenario lab: deterministic market tools, agent debate, frozen replay, assumption sweeps, evidence and scored forecasts. Historical availability limits are explicit. Research software; no orders or demonstrated edge.",
         "developerName": "Himanshu Jangir",
         "category": "Productivity",
         "capabilities": [

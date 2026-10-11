@@ -22,13 +22,16 @@ SYMBOL, NAME, EXCHANGE, CURRENCY, HORIZON, AS_OF, RUN_DIR, IS_HISTORICAL, WHAT_I
 3. `direction_forecast(symbol, horizon, as_of)` for the quant model and its base rates.
 4. Read the result: the baseline is the stock's normal behaviour; the scenario is normal
    behaviour plus the crowd's reactions. The shift is what the news did in the simulation.
-   A shift under 3 points in p_up or p_down is noise at this sample size: say so.
+   Inspect `shift_mc_interval_95`. An interval crossing zero does not establish a shift.
+   This interval excludes behavioral/model uncertainty. It is not proof the event caused a real move.
 5. Direction for the journal: UP if scenario p_up is at least 0.08 above p_down, DOWN if the
    reverse, otherwise SIDEWAYS.
 6. `journal_record` with: symbol, as_of (the forecast's as_of), horizon_days, price (the
    forecast's price), direction, p_up and p_down (the scenario's), base_p_up (the
-   forecast's base_rates.up), flat_band_pct (0.25 x the forecast's horizon_1sigma_pct),
-   source "swarm", run_dir. What-if results are hypothetical and are not recorded.
+   forecast's base_rates.up), p_flat, base_probabilities (forecast.base_rates),
+   event_contract (copy exactly from the simulation), source "swarm", run_id, run_dir.
+   The forecast and simulation must have identical as_of/reference prices/horizon bands
+   before comparing probabilities. What-if results are hypothetical and are not recorded.
 
 ## Write `RUN_DIR/50-swarm-report.md`
 ```
@@ -42,7 +45,7 @@ SYMBOL, NAME, EXCHANGE, CURRENCY, HORIZON, AS_OF, RUN_DIR, IS_HISTORICAL, WHAT_I
 | Quant model (history of similar setups) |
 | What-if: <W1> (if any) |
 
-## Who moved the price
+## Simulated group contribution (not observed flows)
 | Group | Reaction (sentiment, conviction, persistence) | Moved the price |
 
 ## Read

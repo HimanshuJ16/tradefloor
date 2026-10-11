@@ -1,20 +1,32 @@
 # Security
 
-## Reporting
+Report vulnerabilities through GitHub private reporting if enabled, or contact the
+maintainer through the repository profile to arrange a private report. Do not post secrets.
 
-Report vulnerabilities privately through GitHub's "Report a vulnerability" on this
-repository, not in a public issue. Expect a first reply within a week.
+The Python MCP server uses stdio and places no orders. Live tools contact Yahoo Finance,
+Google News and optionally Reddit. Fixture computations work offline. Dependencies
+are resolved in `server/uv.lock`.
 
-## What the project does and does not do
+The optional browser server is local and single-user: 127.0.0.1 only, exact Host checking,
+same-origin POST, 2 MB bodies and one concurrent simulation. It sends CSP, nosniff and
+no-store headers. It has no authentication or tenant isolation. Do not tunnel/expose it;
+publish the standalone synthetic HTML for a public demo.
 
-- It needs no API keys and stores none. Settings and the journal are plain JSON files in
-  `~/.tradefloor/`.
-- It never places orders and has no broker integration.
-- The MCP server makes outbound HTTPS requests only to market data and news sources
-  (Yahoo Finance through yfinance, Google News RSS, and Reddit only when enabled). It opens
-  no ports.
-- On Claude Code, the agent definitions deny shell and file-edit tools; agents only write
-  their own report files in the run folder. Other hosts apply their own tool permissions.
-- Headlines and filings are untrusted input. Every role that reads them is told they are
-  data, never instructions, but a crafted headline is still text a model reads.
-  Review a run folder before acting on its output.
+Imported JSON is data, never executable code. Run IDs cannot traverse paths, Python
+checks bundle hashes, numerical inputs reject NaN/infinity, and simulation budgets are
+bounded. Standalone HTML imports are unverified previews; verify with `run_bundle`.
+Evidence is rendered as textContent, never HTML.
+
+Headlines, filings and report text are untrusted input. Agent prompts are not a proven
+prompt-injection barrier. Python validates the final probability budget and reference
+structure; it cannot establish claim truth. Hosts control their own agent tool permissions.
+
+`~/.tradefloor/` contains settings, SQLite journals, universe receipts and price snapshots.
+Filesystem access is the local trust boundary; there is no encryption or user isolation.
+Stop writers before copying SQLite files, or use a proper SQLite backup including active
+WAL state. Legacy migration is transactional and preserves corrupt originals. Exports
+are derived copies.
+
+Local content hashes and the experiment hash chain do not prove publication before
+outcomes. Externally timestamp commitments for prospective claims. Check redistribution
+rights before sharing provider snapshots.

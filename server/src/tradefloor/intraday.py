@@ -308,6 +308,7 @@ def plan(f: dict, direction: int, mode: str, capital: float, risk_pct: float, ma
         "entry": how, "trigger": round(trigger, 4), "stop": round(stop, 4),
         "targets": [round(trigger + direction * m * risk, 4) for m in (1, 2)],
         "risk_per_share": round(risk, 4), "extended_from_vwap": extended,
+        "entry_style": "pullback_hold" if extended else "breakout", "square_off": square_off,
         "time_stop": f"Square off by {square_off}" if square_off else "Square off before the close",
         "invalidation": f"Price closes a 5-minute bar back {'below' if direction > 0 else 'above'} VWAP",
     }

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "tradefloor",
-  "version": "0.1.1",
-  "description": "A trading desk for any market: analysts, bull/bear debate, trader, risk committee and portfolio manager over deterministic, point-in-time market data. Direction with calibrated probabilities, a sized trade plan, and a journal that scores every call.",
+  "version": "0.3.0",
+  "description": "An open financial research desk and scenario lab: deterministic market tools, agent debate, frozen replay, assumption sweeps, evidence and scored forecasts. Historical availability limits are explicit. Research software; no orders or demonstrated edge.",
   "author": {
     "name": "Himanshu Jangir",
     "url": "https://github.com/HimanshuJ16"
@@ -59,6 +59,7 @@
         "tradefloor.server"
       ],
       "env": {
+        "TRADEFLOOR_ACCOUNT_CURRENCY": "${user_config.account_currency}",
         "TRADEFLOOR_DEFAULT_MARKET": "${user_config.default_market}",
         "TRADEFLOOR_DEFAULT_HORIZON": "${user_config.default_horizon}",
         "TRADEFLOOR_CAPITAL": "${user_config.capital}",
@@ -70,6 +71,12 @@
     }
   },
   "userConfig": {
+    "account_currency": {
+      "type": "string",
+      "title": "Account currency",
+      "default": "",
+      "description": "Three-letter capital currency. Empty uses home exchange currency. Foreign quotes require explicit conversion for sizing."
+    },
     "default_market": {
       "type": "string",
       "title": "Home market",

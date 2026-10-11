@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from . import data, intraday as it, markets, premarket as pm, settings
+from . import calendars, data, intraday as it, markets, premarket as pm, settings, snapshots, validation
 
 
 def _custom_list(market: str) -> list[str] | None:
@@ -25,6 +25,8 @@ def build_universe(market: str, size: int | None) -> dict:
     custom = None if it.resolve_universe(market) else _custom_list(market)
     if custom:
         code = markets.exchange_for_symbol(custom[0])
+        if any(markets.exchange_for_symbol(s) != code for s in custom):
+            raise ValueError("a custom scan must contain one exchange; scan each venue separately")
         return {"symbols": custom[:150], "exchange": code, "label": f"custom list of {len(custom)} symbols",
                 "region": None, "delay_minutes": None}
     spec = it.resolve_universe(market)
@@ -53,21 +55,41 @@ def _earnings_date(q: dict) -> date | None:
 def parse_at(at: str | None, tz: ZoneInfo) -> datetime | None:
     if not at:
         return None
-    d = datetime.strptime(at.strip()[:16], "%Y-%m-%d %H:%M")
-    return d.replace(tzinfo=tz)
+    d = datetime.strptime(at.strip(), "%Y-%m-%d %H:%M")
+    stamp = d.replace(tzinfo=tz)
+    if stamp > datetime.now(tz):
+        raise ValueError("at cannot be in the future")
+    return stamp
 
 
 def run(market: str, top: int = 8, at: str | None = None, size: int | None = None, side: str = "both",
         min_rvol: float = 0.8, mode: str = "auto") -> dict:
-    uni = build_universe(market, size)
-    ex = markets.EXCHANGES[uni["exchange"]]
+    if mode not in ("auto", "live", "premarket") or side not in ("both", "long", "short"):
+        raise ValueError("invalid scan mode or side")
+    validation.number(min_rvol, "min_rvol", 0, 100)
+    if size is not None:
+        validation.integer(size, "size", 2, 150)
+    spec = it.resolve_universe(market)
+    custom = _custom_list(market) if spec is None else None
+    code = spec.exchange_code if spec else markets.exchange_for_symbol(custom[0]) if custom else None
+    if code is None:
+        raise ValueError("unknown market; use a registered universe or a same-exchange symbol list")
+    ex = markets.EXCHANGES[code]
     tz = ZoneInfo(ex.tz)
-    bench_sym = ex.benchmark if ex.benchmark and ex.benchmark not in uni["symbols"] else None
-    bars = data.intraday_bars(uni["symbols"] + ([bench_sym] if bench_sym else []), tz=ex.tz)
     at_dt = parse_at(at, tz)
     now = at_dt or datetime.now(tz)
-    if at_dt:
-        bars = {s: it.truncate_at(df, at_dt) for s, df in bars.items()}
+    receipt = snapshots.historical_universe(market, now) if at_dt else None
+    uni = dict(receipt["universe"]) if receipt else build_universe(market, size)
+    if receipt:
+        uni["earnings"] = {}  # archived dates alone do not prove event announcement availability
+    elif at_dt:
+        uni["earnings"] = {}
+    else:
+        snapshots.capture_universe(market, {**uni, "earnings": {s: str(d) for s, d in uni.get("earnings", {}).items()}})
+    bench_sym = ex.benchmark if ex.benchmark and ex.benchmark not in uni["symbols"] else None
+    requested = uni["symbols"] + ([bench_sym] if bench_sym else [])
+    fetched = data.intraday_bars(requested, tz=ex.tz)
+    bars = {s: calendars.filter_bars(it.truncate_at(df, now), ex.code, ex.tz) for s, df in fetched.items()}
     hist = {s: it.sessions(df) for s, df in bars.items() if s != bench_sym}
     hist = {s: v for s, v in hist.items() if len(v) >= 8}
     if not hist:
@@ -78,6 +100,9 @@ def run(market: str, top: int = 8, at: str | None = None, size: int | None = Non
     close_hhmm = it.typical_close_time(ref)
     last = ref[-1]
     today = now.date()
+    schedule = calendars.session(ex.code, today, ex.tz)
+    if schedule["date"] == str(today):
+        close_hhmm = datetime.fromisoformat(schedule["close"]).strftime("%H:%M")
     session_done = last.index[0].date() < today or (close_hhmm is not None and now.strftime("%H:%M") >= close_hhmm)
     bars_today = len(last) if last.index[0].date() == today else 0
     live_possible = it.decide_mode(bars_today, session_done) == "live"
@@ -85,7 +110,11 @@ def run(market: str, top: int = 8, at: str | None = None, size: int | None = Non
         raise LookupError("The session is not open with at least 15 minutes of bars, so there is nothing live to scan. "
                           "Run without mode='live' for the pre-market watchlist.")
     if mode == "premarket" or (mode == "auto" and not live_possible):
-        return _premarket(market, uni, ex, hist, now, today, close_hhmm, top, side, at)
+        out = _premarket(market, uni, ex, hist, now, today, close_hhmm, top, side, at)
+        out["coverage"] = {"requested": len(uni["symbols"]), "received": len(hist), "missing": sorted(set(uni["symbols"]) - set(hist)),
+                           "status": "complete" if len(hist) == len(uni["symbols"]) else "degraded"}
+        out["replay_integrity"] = {"universe": "archived" if receipt else "current", "earnings_boost": "disabled" if at_dt else "current snapshot"}
+        return out
     mode = "live"
     k_live = bars_today
     cal = it.calibrate(hist, bench_sess, lambda s: k_live, "live", exclude_last=True, min_rvol=min_rvol)
@@ -130,6 +159,14 @@ def run(market: str, top: int = 8, at: str | None = None, size: int | None = Non
             "probabilities": pr,
             "plan": it.plan(f, d, mode, cap, risk, maxpos, sq),
         }
+        candidate_session = hist[sym][-1]
+        age = (now - (candidate_session.index[-1] + pd.Timedelta(minutes=it.BAR_MINUTES))).total_seconds() / 60
+        c["data_age_minutes"] = round(age, 1)
+        c["freshness"] = "stale" if age > max(15, (uni["delay_minutes"] or 0) + 10) else "within provider delay budget"
+        _safe_scan_sizing(c["plan"], ex)
+        c["plan"]["square_off"] = sq
+        if c["freshness"] == "stale":
+            c["plan"] = {"side": "none", "action": "Abstain: candidate data is stale", "square_off": sq}
         if uni.get("earnings", {}).get(sym) == today:
             c["event"] = "Earnings scheduled today"
         cands.append(c)
@@ -152,6 +189,10 @@ def run(market: str, top: int = 8, at: str | None = None, size: int | None = Non
                         "base_p_follow": round(float((cal["outcome"] == 1).mean()), 3) if len(cal) else None},
         "filters": {"min_rvol": min_rvol, "min_adr_pct": 0.8, "liquidity": "top 70% of the universe by traded value"},
         "candidates": cands,
+        "calendar": schedule,
+        "coverage": {"requested": len(uni["symbols"]), "received": len(hist), "missing": sorted(set(uni["symbols"]) - set(hist)),
+                     "status": "complete" if len(hist) == len(uni["symbols"]) else "degraded"},
+        "replay_integrity": {"universe": "archived" if receipt else "current", "earnings_boost": "disabled" if at_dt else "current snapshot"},
         "regime_read": _regime_read(cal),
         "market_note": it.MARKET_NOTES.get(uni["region"] or ""),
         "caveats": [
@@ -162,7 +203,7 @@ def run(market: str, top: int = 8, at: str | None = None, size: int | None = Non
         "disclaimer": "Not investment advice. Public data, possibly delayed; verify before acting.",
     }
     if at_dt:
-        out["replay"] = f"Point-in-time replay: only bars closed by {at} were used."
+        out["replay"] = f"Bar-truncated replay at {at}; universe {'archived' if receipt else 'current, survivor/liquidity bias remains'}; current earnings disabled."
     return out
 
 
@@ -176,10 +217,16 @@ def _next_weekday(d: date) -> date:
 def _premarket(market, uni, ex, hist, now, today, close_hhmm, top, side, at) -> dict:
     """Watchlist for the coming session: stocks likely to make a big move, two-sided plans."""
     # A partial session already started today is not "before" the target: drop it.
-    started_today = {s: v[-1].index[0].date() == today for s, v in hist.items()}
+    schedule_today = calendars.session(ex.code, today, ex.tz)
+    completed_today = schedule_today["date"] == str(today) and now >= datetime.fromisoformat(schedule_today["close"])
+    started_today = {s: v[-1].index[0].date() == today and not completed_today for s, v in hist.items()}
     prior = {s: (v[:-1] if started_today[s] else v) for s, v in hist.items()}
     last_date = max(v[-1].index[0].date() for v in prior.values())
-    target = today if (any(started_today.values()) or (today > last_date and today.weekday() < 5)) else _next_weekday(last_date)
+    from datetime import timedelta
+    start = today if now.date() > last_date else last_date + timedelta(days=1)
+    schedule = calendars.session(ex.code, start, ex.tz)
+    target = date.fromisoformat(schedule["date"])
+    close_hhmm = datetime.fromisoformat(schedule["close"]).strftime("%H:%M")
 
     pool = pm.history(prior)
     if len(pool) < 100:
@@ -218,6 +265,8 @@ def _premarket(market, uni, ex, hist, now, today, close_hhmm, top, side, at) -> 
             "probabilities": pr,
             "plan": pm.orb_plan(f, lean, st["capital"]["value"], st["intraday_risk_pct"]["value"], st["max_position_pct"]["value"], sq),
         }
+        _safe_scan_sizing(c["plan"], ex)
+        c["plan"]["square_off"] = sq
         if earnings.get(sym) == target:
             c["event"] = f"Earnings scheduled on {target}: expect a large move, and a gap that can skip the stop"
         cands.append(c)
@@ -234,7 +283,8 @@ def _premarket(market, uni, ex, hist, now, today, close_hhmm, top, side, at) -> 
         "market": market, "universe": uni["label"], "universe_size": len(prior), "exchange": ex.code, "currency": ex.currency,
         "mode": "premarket",
         "as_of": now.strftime("%Y-%m-%d %H:%M %Z"),
-        "target_session": str(target) + ("" if target == today else " (next weekday; exchange holidays not checked)"),
+        "target_session": str(target),
+        "calendar": schedule,
         "based_on_session": str(last_date),
         "session_close": close_hhmm, "square_off_by": sq,
         "exchange_delay_minutes": uni["delay_minutes"],
@@ -251,15 +301,23 @@ def _premarket(market, uni, ex, hist, now, today, close_hhmm, top, side, at) -> 
         "caveats": [
             "p_big_move is how often stocks this in-play had a big move in this universe over the past sessions; it says nothing about direction.",
             "Pre-market gaps are not seen here (Yahoo has no pre-open data for most exchanges); a large gap changes the plan.",
-            "Exchange holidays are not checked.",
+            schedule["note"],
         ],
         "disclaimer": "Not investment advice. Public data, possibly delayed; verify before acting.",
     }
     if any(started_today.values()):
         out["note"] = "The session has started but the 15-minute opening range is not complete; this is the pre-market view. Re-run after 15 minutes for the live scan."
     if at:
-        out["replay"] = f"Point-in-time replay: only bars closed by {at} were used."
+        out["replay"] = f"Bar-truncated replay at {at}; current earnings disabled; see replay_integrity for universe availability."
     return out
+
+
+def _safe_scan_sizing(proposal: dict, ex) -> None:
+    account = settings.get("account_currency") or markets.EXCHANGES[settings.get("default_market")].currency
+    if account != ex.currency or ex.price_unit_note:
+        proposal.pop("size", None)
+        proposal.pop("size_estimate", None)
+        proposal["sizing_status"] = "unavailable: scan requires instrument quote-unit metadata and account FX; use trade_plan with explicit verified units"
 
 
 def _regime_read(cal: pd.DataFrame) -> str | None:

@@ -1,9 +1,9 @@
 [project]
 name = "tradefloor"
-version = "0.1.1"
-description = "Multi-agent market analysis for any exchange: MCP server with deterministic, point-in-time analytics."
+version = "0.3.0"
+description = "Financial research desk and reproducible scenario lab: deterministic analytics, evidence, replay and forecast evaluation."
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Himanshu Jangir" }]
 keywords = ["trading", "stocks", "multi-agent", "llm", "mcp", "claude-code", "intraday", "nse", "calibration"]
 classifiers = [
@@ -17,6 +17,7 @@ dependencies = [
   "yfinance>=0.2.54",
   "pandas>=2.1",
   "numpy>=1.26",
+  "exchange-calendars>=4.5,<5",
 ]
 
 [project.urls]
@@ -26,9 +27,13 @@ Issues = "https://github.com/HimanshuJ16/tradefloor/issues"
 [project.scripts]
 tradefloor-mcp = "tradefloor.server:main"
 tradefloor = "tradefloor.cli:main"
+tradefloor-demo = "tradefloor.demo:main"
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = [
+    "pytest>=8",
+    "ruff>=0.17.0",
+]
 
 [build-system]
 requires = ["hatchling"]

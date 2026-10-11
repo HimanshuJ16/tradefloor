@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python: ['3.11', '3.12']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
 
@@ -25,4 +25,32 @@ jobs:
         run: python tools/build.py --check
 
       - name: Tests (offline, synthetic data)
-        run: uv run --project server --group dev pytest -q tests server/tests
+        run: uv run --locked --project server --group dev pytest -q tests server/tests
+      - name: Undefined names and syntax lint
+        run: uv run --locked --project server --group dev ruff check --select F,E9 server/src/tradefloor
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - run: uv build --project server --out-dir dist
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Frontend syntax and offline application logic
+        run: |
+          node --check server/src/tradefloor/assets/app.js
+          node --check server/src/tradefloor/assets/workspace.js
+          node --test tests/frontend.test.cjs
+      - name: Install built wheel and verify assets
+        shell: bash
+        run: |
+          wheel=$(find dist -name '*.whl' -print -quit)
+          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'thesis_challenge' in cli.TOOLS; assert 'Research, with a memory.' in demo.workspace_document(); print('wheel verified')"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/*

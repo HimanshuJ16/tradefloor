@@ -18,9 +18,11 @@ def test_rosters_normalise_and_accept_overrides():
     assert max(g, key=lambda x: x.weight).id == "retail"
 
 
-def test_reaction_parsing_clips_values():
-    r = swarm.Reaction.parse({"group": "fii", "sentiment": 4, "conviction": -1, "persistence_days": 500, "fair_value_shift_pct": None})
-    assert (r.sentiment, r.conviction, r.persistence_days, r.fair_value_shift_pct) == (1.0, 0.0, 60.0, 0.0)
+def test_reaction_parsing_rejects_invalid_model_output():
+    with pytest.raises(ValueError):
+        swarm.Reaction.parse({"group": "fii", "sentiment": 4, "conviction": -1, "persistence_days": 500})
+    r = swarm.Reaction.parse({"group": "fii", "sentiment": .5, "fair_value_shift_pct": None})
+    assert r.sentiment == .5 and r.fair_value_shift_pct == 0
 
 
 def test_baseline_matches_the_stock_horizon_spread(df):

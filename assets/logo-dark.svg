@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 124" width="460" height="124" role="img" aria-labelledby="title description">
+  <title id="title">Tradefloor</title>
+  <desc id="description">A geometric T and F monogram above a brass floor line, with a restrained Tradefloor wordmark.</desc>
+  <g transform="translate(18 18)">
+    <rect width="84" height="84" rx="3" fill="#10232e"/>
+    <path d="M18 20H66 M30 20V61 M50 20V61 M50 40H66" fill="none" stroke="#f0f3ef" stroke-width="6" stroke-linecap="square"/>
+    <path d="M18 71H66" stroke="#b99b68" stroke-width="3"/>
+  </g>
+  <text x="126" y="79" fill="#eef2ed" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700" letter-spacing="-1.7">tradefloor</text>
+  <text x="129" y="103" fill="#93a39e" font-family="Arial, Helvetica, sans-serif" font-size="10.5" font-weight="600" letter-spacing="2.15">FINANCIAL RESEARCH / OPEN SOURCE</text>
+</svg>

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="An open-source financial scenario lab. Freeze an event, challenge the assumptions, fork the run, and reveal what would falsify the thesis."
+    />
+    <title>Tradefloor — scenario lab</title>
+    <style>
+      /*STYLE*/
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <a
+          class="brand"
+          href="https://github.com/HimanshuJ16/tradefloor"
+          target="_blank"
+          rel="noopener noreferrer"
+          ><svg class="brand-icon" viewBox="0 0 84 84" aria-hidden="true">
+            <rect width="84" height="84" rx="3" fill="#10232e" />
+            <path
+              d="M18 20H66 M30 20V61 M50 20V61 M50 40H66"
+              fill="none"
+              stroke="#f0f3ef"
+              stroke-width="6"
+              stroke-linecap="square"
+            />
+            <path d="M18 71H66" stroke="#b99b68" stroke-width="3" />
+          </svg>
+          tradefloor<span class="version">/ scenario lab</span></a
+        ><span class="status"><i></i> OPEN SOURCE · LOCAL FIRST</span>
+      </header>
+      <main>
+        <div class="intro">
+          <p class="eyebrow">THE MARKET IS A SET OF POSSIBILITIES</p>
+          <h1>What would change<br /><span>your mind?</span></h1>
+          <p class="lede">
+            Turn a market story into a testable scenario. Inspect the
+            assumptions, compare the baselines, and keep the evidence.
+          </p>
+          <div class="chips">
+            <span>Fictional data</span><span>No API keys</span
+            ><span>No orders</span>
+          </div>
+        </div>
+        <section class="workspace" aria-label="Scenario workspace">
+          <aside class="controls">
+            <p class="eyebrow">01 / SET THE SCENE</p>
+            <label for="case">Event</label
+            ><select id="case">
+              <option value="earnings">01 — An earnings surprise</option>
+              <option value="policy">02 — A policy surprise</option>
+              <option value="liquidity">03 — A crowded exit</option></select
+            ><label for="preset">Challenge an assumption</label
+            ><select id="preset">
+              <option value="original">Original thesis</option>
+              <option value="fades">Attention fades in one day</option>
+              <option value="persistent">Reaction persists for 20 days</option>
+              <option value="small-retail">Retail represents 10%</option>
+              <option value="large-retail">Retail represents 50%</option>
+              <option value="reverse">Reverse the reaction</option>
+              <option value="neutral">Remove the reaction</option>
+              <option value="imported" disabled>Imported assumptions</option>
+            </select>
+            <div class="assumptions">
+              <div><span>Reaction</span><strong id="sentiment">—</strong></div>
+              <div>
+                <span>Half-life</span><strong id="persistence">—</strong>
+              </div>
+              <div><span>Retail share</span><strong id="retail">—</strong></div>
+              <div>
+                <span>Horizon / worlds</span><strong id="run-scale">—</strong>
+              </div>
+              <div><span>Seed</span><strong id="seed">—</strong></div>
+            </div>
+            <button id="simulate">Run scenario <span>↗</span></button
+            ><button class="secondary" id="fork" disabled>Fork this run</button>
+            <p class="small" id="mode-note">
+              Each change is a conditional simulation, with the same seeded
+              randomness.
+            </p>
+            <div class="receipt">
+              <span class="eyebrow">RUN RECEIPT</span
+              ><code id="run-id">Waiting for a run</code
+              ><span id="parent-id" class="small"></span
+              ><button class="text-button" id="export" disabled>
+                ↓ Export frozen run</button
+              ><button class="text-button" id="import-trigger">
+                ↑ Open run bundle</button
+              ><input
+                id="import"
+                type="file"
+                accept=".json,application/json"
+                hidden
+              /><span class="small" id="integrity"
+                >Local hashes detect edits; they do not prove pre-event
+                publication.</span
+              >
+            </div>
+          </aside>
+          <div class="results">
+            <div class="result-header">
+              <div>
+                <p class="eyebrow">02 / FOLLOW THE CONSEQUENCES</p>
+                <h2 id="name">An earnings surprise</h2>
+              </div>
+              <span class="pill" id="data-kind">SYNTHETIC</span>
+            </div>
+            <p id="headline" class="event-text">
+              Choose an event and run a scenario.
+            </p>
+            <div role="status" aria-live="polite" id="message"></div>
+            <div id="output" hidden>
+              <div class="metrics">
+                <div>
+                  <span>Chance of UP</span><strong id="p-up">—</strong
+                  ><small id="shift">—</small>
+                </div>
+                <div>
+                  <span>Median return</span><strong id="median">—</strong
+                  ><small>conditional on these reactions</small>
+                </div>
+                <div>
+                  <span>80% outcome range</span><strong id="range">—</strong
+                  ><small>simulated, not a guarantee</small>
+                </div>
+              </div>
+              <div class="chart-top">
+                <h3>One story. Many paths.</h3>
+                <div class="legend">
+                  <span class="legend-range"></span>Scenario 10–90%<span
+                    class="legend-base"
+                  ></span
+                  >Baseline median
+                </div>
+              </div>
+              <svg
+                id="fan"
+                viewBox="0 0 700 230"
+                role="img"
+                aria-label="Simulated return fan over 21 trading days"
+              ></svg>
+              <p class="small chart-note">
+                The band reflects simulated outcomes. Behavioral assumptions
+                introduce additional uncertainty.
+              </p>
+              <div class="baselines">
+                <h3>Make the model earn its complexity.</h3>
+                <div id="comparison"></div>
+                <p class="small">
+                  Bars: DOWN · FLAT · UP. Right column: P(UP).
+                </p>
+                <p class="small">
+                  All models use the same frozen price history and flat band.
+                  These demo cases provide no evidence of predictive skill.
+                </p>
+              </div>
+              <div class="lower-grid">
+                <article>
+                  <p class="eyebrow">03 / TRY TO BREAK IT</p>
+                  <h3>How fragile is the thesis?</h3>
+                  <p id="fragility"></p>
+                  <div id="sensitivity"></div>
+                  <p class="small" id="sensitivity-note">
+                    Sweep reaction strength and persistence; this range is not a
+                    confidence interval.
+                  </p>
+                </article>
+                <article>
+                  <p class="eyebrow">04 / DEFINE FAILURE</p>
+                  <h3>A claim that can be wrong.</h3>
+                  <p id="failure"></p>
+                  <button class="secondary" id="reveal">
+                    Reveal held-out outcome
+                  </button>
+                  <div id="settlement" hidden></div>
+                </article>
+              </div>
+              <article class="evidence">
+                <p class="eyebrow">05 / INSPECT THE EVIDENCE</p>
+                <h3>Facts, assumptions, interpretations.</h3>
+                <div id="graph"></div>
+                <p class="small">
+                  Connections show cited support for a hypothesis. They do not
+                  establish causality. All imported text is treated as data.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+        <section class="closing">
+          <div>
+            <p class="eyebrow">FROM A STORY TO AN EXPERIMENT</p>
+            <h2>Keep the run.<br />Test the next claim.</h2>
+          </div>
+          <p>
+            Tradefloor combines deterministic market tools, agent research
+            roles, and a reproducible scenario lab. Bring your own data through
+            the CLI or MCP. Record forecasts, abstentions, and failures;
+            evaluate them against paired baselines.
+          </p>
+          <a
+            class="repo-link"
+            href="https://github.com/HimanshuJ16/tradefloor"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Explore the source ↗</a
+          >
+        </section>
+      </main>
+      <footer>
+        <span>Tradefloor · MIT licensed code</span
+        ><span
+          >Research software. No demonstrated trading edge. Not investment
+          advice.</span
+        >
+      </footer>
+    </div>
+    <script>
+      /*DATA*/
+    </script>
+    <script>
+      /*APP*/
+    </script>
+  </body>
+</html>

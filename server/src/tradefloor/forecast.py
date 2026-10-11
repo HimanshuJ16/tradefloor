@@ -21,7 +21,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from . import indicators as ind
+from . import events, indicators as ind, validation
 
 FLAT_BAND_SIGMA = 0.25  # |forward return| below 0.25 sigma of the horizon counts as flat
 SHRINK_K = 20.0  # pseudo-observations pulling conditional rates to the base rate
@@ -88,7 +88,9 @@ def _rates(lab: pd.Series) -> dict[str, float]:
 
 def forecast(df: pd.DataFrame, horizon_days: int, bench: pd.DataFrame | None = None) -> dict:
     """df must already be truncated at as_of. Nothing after the last row is read."""
-    h = int(horizon_days)
+    h = validation.integer(horizon_days, "horizon_days")
+    if df.empty or len(df) < 41 or not np.isfinite(df["Close"]).all() or (df["Close"] <= 0).any():
+        raise ValueError("forecast requires at least 41 finite positive closes")
     c = df["Close"].astype(float)
     price = float(c.iloc[-1])
     logc = np.log(c)
@@ -114,13 +116,14 @@ def forecast(df: pd.DataFrame, horizon_days: int, bench: pd.DataFrame | None = N
 
     result: dict = {
         "horizon_trading_days": h,
-        "price": round(price, 4),
+        "price": price,
         "as_of": str(df.index[-1].date()),
         "setup_score": None if pd.isna(cur_score) else round(float(cur_score), 3),
         "factors": {k: {"value": cur_factors.get(k), "weight": w[k]} for k in w},
         "volatility": {"daily_ewma_pct": round(sigma_d * 100, 3), "horizon_1sigma_pct": round(sigma_h * 100, 2)},
         "base_rates": {k: round(v, 3) for k, v in base.items()},
         "history_rows": int(len(hist)),
+        "event_contract": events.contract(h, events.current_band(c, h), str(df.index[-1].date()), price),
     }
 
     enough = len(hist) >= MIN_ROWS and not pd.isna(cur_score)
@@ -152,7 +155,8 @@ def forecast(df: pd.DataFrame, horizon_days: int, bench: pd.DataFrame | None = N
         result["warning"] = f"Fewer than {MIN_ROWS} labelled rows or no score today; probabilities are unconditional base rates."
 
     z = 1.2816  # 80% two-sided under a normal approximation
-    result["probabilities"] = {k: round(v, 3) for k, v in p.items()}
+    result["probabilities"] = {k: round(v, 8) for k, v in p.items()}
+    result["base_rates"] = {k: round(v, 8) for k, v in base.items()} if all(np.isfinite(v) for v in base.values()) else {"up": 1/3, "down": 1/3, "flat": 1/3}
     result["expected_range_80pct"] = {
         "low": round(price * float(np.exp(drift - z * sigma_h)), 4),
         "high": round(price * float(np.exp(drift + z * sigma_h)), 4),

@@ -15,12 +15,14 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 from pathlib import Path
 
-from . import markets
+from . import markets, storage, validation
 
 # key -> (env var, type, default, description)
 SPEC: dict[str, tuple[str, type, object, str]] = {
+    "account_currency": ("TRADEFLOOR_ACCOUNT_CURRENCY", str, "", "Capital currency; empty uses the home exchange currency"),
     "default_market": ("TRADEFLOOR_DEFAULT_MARKET", str, "US", "Exchange code for bare tickers, e.g. US, NSE, LSE, TSE"),
     "default_horizon": ("TRADEFLOOR_DEFAULT_HORIZON", str, "1m", "Horizon when none is given: 1w, 2w, 1m, 3m, 6m, 1y"),
     "capital": ("TRADEFLOOR_CAPITAL", float, 0.0, "Capital for position sizing in your home currency; 0 skips sizing"),
@@ -46,8 +48,11 @@ def config_path() -> Path:
 
 def _read_file() -> dict:
     try:
-        return json.loads(config_path().read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        out = json.loads(config_path().read_text(encoding="utf-8"))
+        if not isinstance(out, dict):
+            raise ValueError("settings must be a JSON object")
+        return out
+    except FileNotFoundError:
         return {}
 
 
@@ -61,11 +66,13 @@ def _coerce(key: str, value) -> object:
                 raise ValueError(f"unknown market {v!r}; see list_markets")
         if key == "default_horizon":
             markets.horizon_to_days(v)  # raises on nonsense
+        if key == "account_currency":
+            v = v.upper()
+            if v and (len(v) != 3 or not v.isalpha()):
+                raise ValueError("account_currency must be a three-letter currency code")
         return v
-    v = typ(float(value)) if typ is int else typ(value)
     lo, hi = BOUNDS.get(key, (None, None))
-    if (lo is not None and v < lo) or (hi is not None and v > hi):
-        raise ValueError(f"{key} must be between {lo} and {hi}")
+    v = validation.integer(value, key, lo, hi) if typ is int else validation.number(value, key, lo, hi)
     return v
 
 
@@ -83,13 +90,13 @@ def effective() -> dict:
             try:
                 value, source = _coerce(key, file[key]), "config.json"
             except (TypeError, ValueError):
-                pass
+                raise ValueError(f"Invalid saved setting {key}; correct {config_path()}")
         raw = os.environ.get(env)
         if _usable(raw):
             try:
                 value, source = _coerce(key, raw), f"env {env}"
             except (TypeError, ValueError):
-                pass
+                raise ValueError(f"Invalid environment setting {env}")
         out[key] = {"value": value, "source": source, "description": desc}
     return out
 
@@ -102,9 +109,13 @@ def set_value(key: str, value) -> dict:
     if key not in SPEC:
         raise KeyError(f"unknown setting {key!r}; known: {', '.join(SPEC)}")
     v = _coerce(key, value)
-    file = _read_file()
-    file[key] = v
-    config_path().write_text(json.dumps(file, indent=2), encoding="utf-8")
+    with storage.connect(home() / "journal.sqlite3"):
+        file = _read_file()
+        file[key] = v
+        fd, tmp = tempfile.mkstemp(dir=home(), prefix="config-", suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(storage.canonical(file))
+        os.replace(tmp, config_path())
     eff = effective()[key]
     res = {"key": key, "saved": v, "path": str(config_path()), "effective": eff}
     if eff["source"].startswith("env"):

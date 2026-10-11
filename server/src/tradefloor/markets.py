@@ -243,10 +243,12 @@ def list_markets() -> list[dict]:
 def horizon_to_days(horizon: str | int, trading_days_per_year: int = 252) -> int:
     """'1d', '2w', '1m', '3m', '1y' or an int count of trading days."""
     if isinstance(horizon, int):
-        return max(1, horizon)
+        from .validation import integer
+        return integer(horizon, "horizon_days")
     h = str(horizon).strip().lower()
     if h.isdigit():
-        return max(1, int(h))
+        from .validation import integer
+        return integer(h, "horizon_days")
     m = re.fullmatch(r"(\d+)\s*(d|day|days|w|wk|week|weeks|m|mo|month|months|q|y|yr|year|years)", h)
     if not m:
         raise ValueError(f"Cannot parse horizon {horizon!r}. Use e.g. 1d, 1w, 1m, 3m, 1y.")
@@ -260,4 +262,5 @@ def horizon_to_days(horizon: str | int, trading_days_per_year: int = 252) -> int
         "q": n * per_month * 3,
         "y": n * trading_days_per_year, "yr": n * trading_days_per_year, "year": n * trading_days_per_year, "years": n * trading_days_per_year,
     }[unit]
-    return max(1, days)
+    from .validation import integer
+    return integer(days, "horizon_days")

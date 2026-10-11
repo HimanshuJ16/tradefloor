@@ -217,7 +217,8 @@ def orb_plan(f: dict, lean_side: str | None, capital: float, risk_pct: float, ma
     return out
 
 
-def simulate_orb(session: pd.DataFrame, adr_abs: float, side: str | None = None) -> dict:
+def simulate_orb(session: pd.DataFrame, adr_abs: float, side: str | None = None,
+                 cost_bps: float = 0, slippage_bps: float = 0, square_off: str | None = None) -> dict:
     """Two-sided opening-range trade on one session's 5-minute bars.
 
     The range is the first 15 minutes. The first later bar to trade through its high (long)
@@ -244,16 +245,9 @@ def simulate_orb(session: pd.DataFrame, adr_abs: float, side: str | None = None)
             return {"status": "scored", "triggered": True, "side": "BOTH", "r_multiple": -1.0, "exit": "stop (range broken both ways in one bar)"}
         d, trig, stop = (1, orh, orl) if up else (-1, orl, orh)
         target = trig + d * 2 * size
-        after = rest.loc[ts:]
-        stop_hit = after["Low"] <= stop if d > 0 else after["High"] >= stop
-        tgt_hit = after["High"] >= target if d > 0 else after["Low"] <= target
-        fs = stop_hit.idxmax() if stop_hit.any() else None
-        ft = tgt_hit.idxmax() if tgt_hit.any() else None
-        if fs is not None and (ft is None or fs <= ft):
-            r, how = -1.0, "stop"
-        elif ft is not None:
-            r, how = 2.0, "target"
-        else:
-            r, how = d * (float(after["Close"].iloc[-1]) - trig) / size, "close"
-        return {"status": "scored", "triggered": True, "side": "LONG" if d > 0 else "SHORT", "r_multiple": round(r, 2), "exit": how}
+        from . import paper
+        result = paper.trade(rest.loc[ts:], d, trig, stop, target, True, cost_bps, slippage_bps, square_off)
+        if result.get("exit") == "target 1":
+            result["exit"] = "target"
+        return {**result, "side": "LONG" if d > 0 else "SHORT"}
     return {"status": "scored", "triggered": False, "r_multiple": 0.0}

@@ -83,9 +83,49 @@ Settings and the journal live in `~/.tradefloor/` and are shared by every host.
 python tools/build.py                                              # regenerate host files
 python tools/build.py --check                                      # fail on drift
 uv run --project server --group dev pytest -q tests server/tests   # offline tests
-uv run --project server python server/scripts/smoke.py             # live: every tool over MCP
+uv run --project server python server/scripts/smoke.py             # provider-dependent core MCP canary
 uv run --project server python server/scripts/check_markets.py     # live: every market symbol
 uv run --project server python server/scripts/eval_premarket.py "nifty 50" "s&p 500" dax
 claude plugin validate --strict .claude-plugin/plugin.json
 agy plugin validate .
 ```
+
+## Scenario research tools (0.2.0)
+
+The 0.3 workspace is now the default browser view; the original lab remains at `/lab`.
+See [workspace contracts](workspace.md) for the persistent project and research tools.
+
+```bash
+uv run --project server tradefloor research_project action=list
+uv run --project server tradefloor research_project action=create --file project.json
+uv run --project server tradefloor thesis_challenge run_id=YOUR_RUN_ID budget=40
+uv run --project server tradefloor research_priority run_id=YOUR_RUN_ID
+uv run --project server tradefloor forecast_arena run_id=YOUR_RUN_ID
+uv run --project server tradefloor robust_evaluation --file evaluation.json
+uv run --project server tradefloor archival_fetch provider=sec identifier=320193
+uv run --project server tradefloor information_timeline cutoff=2026-09-28T23:59:59Z
+```
+
+Use `tradefloor list` for all 54 tools and exact signatures. Structured file arguments
+are one JSON object, for example `{"action":"create","body":{"title":"Earnings thesis"}}`.
+SEC requires a contact User-Agent in the server environment; ALFRED requires a FRED key.
+External engine integration status is explicit in [extensions.md](extensions.md).
+
+```bash
+uv run --project server tradefloor-demo
+uv run --project server tradefloor-demo --export dist/demo/index.html
+uv run --project server tradefloor scenario_lab case=earnings worlds=300
+uv run --project server tradefloor scenario_fork run_id=ID --file fork.json
+uv run --project server tradefloor run_bundle run_id=ID
+uv run --project server tradefloor run_replay run_id=ID
+uv run --project server tradefloor market_sandbox liquidity=0.2
+uv run --project server tradefloor experiment_capture symbol=AAPL horizon=1w
+uv run --project server tradefloor experiment_mature
+uv run --project server tradefloor experiment_scoreboard
+uv run --project server tradefloor journal_export
+```
+
+`lab` is also a host-neutral skill. `tradefloor list` shows every current signature.
+Structured arguments support `--file` and `--json`. See [research-lab.md](research-lab.md)
+for event contracts, evidence, sizing, learning review and importing custom snapshots.
+Historical bar truncation does not establish historical source/universe availability.

@@ -18,7 +18,9 @@ MARKET, EXCHANGE, CURRENCY, MODE, AT, SESSION_DATE, RUN_DIR.
    most three trades; an empty book is a valid decision.
 3. For each trade you take, call `journal_record` with: kind "intraday", symbol,
    exchange (EXCHANGE), mode (MODE), direction ("LONG" or "SHORT"), trigger, stop,
-   targets, p_follow (adjusted, from the shortlist), base_p_follow (the scan's
+   targets, signal_price (candidate.price), adr_pct (candidate.adr_pct / 100),
+   entry_style and square_off (from the plan), cost_bps and slippage_bps (explicit assumptions),
+   p_follow (adjusted, from the shortlist), base_p_follow (the scan's
    calibration), size_multiplier, run_dir, and signal_time (AT as "YYYY-MM-DD HH:MM")
    (live mode; pre-market entries are described below).
 

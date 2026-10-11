@@ -1,55 +1,57 @@
 # Roadmap
 
-Ranked by how much each item widens what no other open project in this space offers today:
-calibrated odds, a scored track record, pre-market and intraday coverage, and markets
-beyond the US.
+## Implemented for 0.3.0
 
-## Next
+- Persistent project workspace, branch comparison, evidence lineage and full archives.
+- Bounded counterexample search and assumption sensitivity prioritization.
+- Four-model arena and external forecast contract; moving-block evaluation and reliability.
+- Immutable information timeline, SEC submissions metadata and ALFRED vintage adapters.
+- Agent assessment/outcome memory, fixed experiment protocols and counted trial proposals.
+- Factor shocks, capped minimum-variance allocation, risk-neutral option benchmark and
+  descriptive synthetic/measured tape comparison.
+- Durable local research jobs, semantic import checks and static Pages workflow.
 
-1. **Public scored track record.** A scheduled GitHub Action runs `scout` pre-market and
-   `direction` on a fixed basket every trading day, commits the journal, and publishes a
-   static page: every call, its probability, and its grade. Calibration plots (predicted
-   probability against observed frequency) and a quant-versus-desk ablation. The claim
-   "it keeps score" becomes a page anyone can audit.
-2. **News-driven pre-open desk.** In-news stocks from the last 24 hours (exchange filings,
-   Moneycontrol and Economic Times RSS, Google News), classified by agents as catalyst or
-   routine, surprise or expected, likely direction. A 9:08 IST pre-open check keeps a call
-   only when the auction gap confirms it; the journal measures the agents' reading against
-   the 51% (58% for big gaps) baseline measured on NSE filings.
-3. **Real-time data adapters, optional and keyed.** Zerodha Kite, Upstox, Dhan and Angel One
-   for India; Alpaca and Polygon for the US. Removes the 15-minute delay and adds pre-open
-   and pre-market prices. Yahoo stays the zero-key default.
-4. **Index options for intraday.** NIFTY and BANKNIFTY option chains: open-interest build-up,
-   put-call ratio, max pain, implied volatility and its term structure, as calibrated
-   features for the index scan and as plan instruments.
-5. **Swarm, next.** Downside skew in the simulated noise (misses fell below the 10th
-   percentile 13 to 16% of the time instead of 10%); fit the news-impact scale to how stocks
-   actually moved on news days instead of the fixed 0.5 sigma; measured participant weights
-   (exchange flow data) in place of the illustrative defaults; an intraday swarm for the
-   pre-market desk.
+See [workspace contracts](docs/workspace.md) for limits. Native OpenBB, Qlib, RD-Agent,
+TimesFM/Chronos, LEAN/Nautilus and ABIDES/JAX engine integrations are **not implemented**;
+[extension contracts](docs/extensions.md) describe the available interchange boundary.
+Fitted options surfaces, learned agent policies and empirical market-impact calibration
+remain research work.
 
-## Then
+## Implemented for 0.2.0
 
-6. **Agent-layer backtest.** Replay the full desk point-in-time over past sessions to
-   measure whether the agents beat the quant prior they start from. Reports the ablation,
-   not only returns.
-7. **Paper execution.** Place conditional paper orders at the triggers (Alpaca paper, broker
-   sandboxes) and track fills, slippage and costs, so the journal grades what a trader would
-   actually have gotten.
-8. **Transaction costs in every plan.** Brokerage, exchange fees, STT and stamp duty for India,
-   SEC fees for the US, and a slippage estimate from the stock's spread and volume.
-9. **Scheduling and alerts.** Run the pre-market desk at a set time and push the watchlist to
-   Telegram, Slack or a phone notification; alert when a watchlist trigger trades.
-10. **Cross-model debate.** Bull and bear on different model families (Claude, GPT through
-   Codex, Gemini through Antigravity) so the debate is not one model arguing with itself.
+- Keyless synthetic scenario UI and standalone export; baselines, evidence, fragility,
+  explicit falsification, frozen fork/replay/export/import.
+- Constrained synthetic limit-order-book sandbox with conserved cash and inventory.
+- Shared event contracts, paired multiclass evaluation, date-clustered intervals and
+  untouched-period learning review with an outcome-horizon embargo.
+- Decision validation, transactional journals, visible corruption, unique workspaces,
+  source/runtime hashes, dated universe receipts and explicit replay limitations.
+- Currency/unit-aware sizing, fractional steps, supplied costs/slippage, conservative
+  OHLC paper fills, continuation scored separately from paper wins.
+- Exchange schedules with explicit proxy/coverage status, closed-bar filtering and freshness.
+- Local experiment registry/collector, all-status retention, manual/provider settlement
+  and matched-event comparisons against quant. No public prospective results yet.
 
-## Later
+## Before treating it as a validated trading system
 
-11. Portfolio mode: analyse holdings together, with correlation and concentration limits.
-12. Event calendar: earnings, central bank meetings and index rebalances per market, fed into
-    both desks.
-13. Exchange holiday calendars, so target sessions are exact.
-14. More hosts: the generator already produced files for Gemini CLI, Copilot CLI, Cursor,
-    OpenCode, Devin and others before the list was trimmed to the three tested hosts.
+1. Collect externally timestamped commitments on a fixed basket/schedule, retaining
+   failures and abstentions. Accumulate actual matured outcomes; publish only with data rights.
+2. Fit behavioral coefficients and participant shares on training data, then validate on
+   untouched periods/instruments. Compare simple models, quant and full agent desk on
+   identical events. Include inference latency, token and data costs.
+3. Add licensed archival news/filings, announcement availability, delisting-aware universes
+   and corporate-action vintages. Current RSS is not an archival feed.
+4. Add contract-specific futures metadata and exact exceptional-session calendars,
+   especially NSE special sessions. Verify with exchange notices.
+5. Add licensed vendor adapters, contractual rate limits, outage canaries and retention rules.
+6. Validate the order-book sandbox against measured spreads, impact, cancellations and
+   depth before drawing market conclusions.
 
-Open an issue before starting on any of these; several change the journal format.
+## Later experiments
+
+Regime-conditioned reactions, empirical asymmetric innovations, nested model uncertainty,
+adaptive simulation budgets, validated memory-based agent policies, learned model families,
+portfolio-wide nonlinear scenarios and fitted timestamped options surfaces.
+
+Broker order execution is out of scope. A multi-user service needs authentication,
+tenant isolation, operational controls and a separate deployment/security review.

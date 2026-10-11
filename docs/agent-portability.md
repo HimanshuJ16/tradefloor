@@ -4,14 +4,17 @@ tradefloor ships for three hosts: **Claude Code**, **Codex** and **Antigravity**
 as much of the three layers as it can carry:
 
 - **Tools**: the MCP server (`server/`), or the same tools as the `tradefloor` CLI.
-- **Procedures**: the six skills (`skills/`) and the protocol (`rules/tradefloor.md`,
+- **Procedures**: the seven skills (`skills/`) and the protocol (`rules/tradefloor.md`,
   generated into `AGENTS.md` and `.agents/rules/`).
 - **Desks**: the twenty-three roles (`roles/`) as the host's own subagents, so analysts, the
   debate and the risk committee run as separate agents.
 
-| Host | Files | What runs | Tested |
+The validation notes below describe earlier builds. Current release checks and remaining
+host-session verification are tracked in [release readiness](release-readiness.md).
+
+| Host | Files | What runs | Historical validation |
 |---|---|---|---|
-| Claude Code | `.claude-plugin/plugin.json` (inline MCP server, `userConfig`), `.claude-plugin/marketplace.json`, `hosts/claude/agents/` (model split: analysts and debaters on Sonnet, judges on the session model), `skills/` | All three desks as parallel subagents; all six skills as `/tradefloor:<skill>` | `claude plugin validate --strict` passes. `/tradefloor:direction`, `/tradefloor:analyze` (12 agents), `/tradefloor:scout` (11 agents) and `/tradefloor:swarm` with a what-if (13 agents), plus a follow-up question to one persona, ran headless with `claude -p --plugin-dir`. |
+| Claude Code | `.claude-plugin/plugin.json` (inline MCP server, `userConfig`), `.claude-plugin/marketplace.json`, `hosts/claude/agents/` (model split: analysts and debaters on Sonnet, judges on the session model), `skills/` | All three desks as parallel subagents; all seven skills as `/tradefloor:<skill>` | `claude plugin validate --strict` passed. `/tradefloor:direction`, `/tradefloor:analyze` (12 agents), `/tradefloor:scout` (11 agents) and `/tradefloor:swarm` with a what-if (13 agents), plus a follow-up question to one persona, ran headless with `claude -p --plugin-dir`. |
 | Codex | `.codex-plugin/plugin.json`, `mcp.json` (`${PLUGIN_ROOT}`), `skills/`, `AGENTS.md`; marketplace read from `.claude-plugin/marketplace.json` | Tools and skills; one model plays the roles in turn from `skills/<skill>/references/` | `codex plugin marketplace add` and `codex plugin add` from a checkout installed it, Codex expanded `${PLUGIN_ROOT}`, and the cached server started and served its tools. A model run was blocked by the account's usage limit. |
 | Antigravity | `plugin.json` (required at the root), `mcp_config.json`, `agents/` (portable format), `skills/`, `.agents/rules/`; or `tools/install.py antigravity` | Tools, skills, subagents | `agy plugin validate .`: 6 skills, 23 agents, 1 MCP server. Through `install.py antigravity --project`, `agy -p` runs called the tools and answered with correct numbers, but used the individual tools rather than the procedures. |
 | Any agent with a shell | the `tradefloor` CLI | Tools | `tradefloor quick_direction`, `settings` and an error case ran live. |

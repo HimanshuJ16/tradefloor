@@ -1,0 +1,21 @@
+name: Standalone synthetic demo
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - name: Build synthetic cases only
+        env:
+          TRADEFLOOR_HOME: ${{ runner.temp }}/tradefloor-synthetic
+        run: uv run --locked --project server tradefloor-demo --export dist/demo/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tradefloor-standalone-demo
+          path: dist/demo/index.html
