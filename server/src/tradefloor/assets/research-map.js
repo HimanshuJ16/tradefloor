@@ -46,7 +46,7 @@
           try {
             const response = await W.api("evidence_fork", { run_id: receipt, evidence_id: n.evidenceId });
             $("map-source").value = "scenario"; state.selected = M.key("source", n.evidenceId); state.withdrawal = null; state.cursor = null; reset();
-            W.render(response); render();
+            W.render(response); await W.attach(); render();
             status("Branch created. Evidence retracted; dependent scenario claims require review. Numerical assumptions are unchanged. No model calls were made.");
           } catch (e) { status(e.message, true); }
           finally { state.forking = false; fork.disabled = false; }

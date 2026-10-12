@@ -125,9 +125,9 @@ def run(args):
     node = shutil.which("node")
     if node:
         def frontend():
-            for file in ("app.js", "workspace.js", "workspace-model.js", "desk.js", "research-map-model.js", "research-map.js"):
+            for file in ("app.js", "workspace.js", "workspace-model.js", "desk.js", "research-map-model.js", "research-map.js", "source-view.js", "sources.js"):
                 command([node, "--check", f"server/src/tradefloor/assets/{file}"])
-            return command([node, "--test", "tests/frontend.test.cjs", "tests/workspace-model.test.cjs", "tests/research-map.test.cjs"])
+            return command([node, "--test", "tests/frontend.test.cjs", "tests/workspace-model.test.cjs", "tests/research-map.test.cjs", "tests/sources.test.cjs"])
         check(report, "frontend_tests_and_syntax", frontend)
     else:
         report["checks"]["frontend_tests_and_syntax"] = {"status": "blocked", "details": "Node is unavailable"}

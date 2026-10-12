@@ -130,7 +130,7 @@ Structured arguments support `--file` and `--json`. See [research-lab.md](resear
 for event contracts, evidence, sizing, learning review and importing custom snapshots.
 Historical bar truncation does not establish historical source/universe availability.
 
-## Model research desk (0.4)
+## Model research desk (0.5)
 
 The browser provides forms for the same CLI/MCP contracts:
 
@@ -143,6 +143,9 @@ The browser provides forms for the same CLI/MCP contracts:
 | `forecast_commitment` | list/freeze/settle with future close and supplied outcome |
 | `research_dataset` | list/get/import/capture/scenario |
 | `data_source_settings` | get/save SEC contact and ALFRED vault/environment settings |
+| `research_library` | list/import/get/search/freeze exact dated document spans |
+| `source_discovery` | sec metadata discovery / explicit public document capture |
+| `research_report` | cited report from a run or session; Markdown and printable HTML |
 
 Configure a local endpoint without a key:
 

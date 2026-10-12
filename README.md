@@ -13,7 +13,8 @@ Tradefloor combines deterministic market tools with agent research roles. Python
 probabilities, validates decisions and scores defined outcomes. The scenario lab works
 without an LLM, API key or signup.
 
-Research software. No orders. No demonstrated trading edge. Version 0.4.0 adds user-selected
+Research software. No orders. No demonstrated trading edge. Version 0.5.0 adds a searchable
+source library, reviewed document capture and cited reports, alongside user-selected
 models, bounded research sessions and inspectable forecast adjustments to the local workspace.
 
 [What's implemented](ROADMAP.md) ·
@@ -103,10 +104,33 @@ to each original thesis. Persistent projects, custom inputs and research jobs re
 local workspace. The static demo labels unavailable operations. See the
 [workspace guide](docs/workspace.md) and [extension contracts](docs/extensions.md).
 
+## From source to cited research
+
+Open **Sources & reports** in the local workspace. Import UTF-8 text, Markdown, HTML or a
+text-based PDF, or discover recent SEC filings and explicitly capture a selected public
+document. Supply original publication/availability dates and data rights. The local library
+preserves original-byte and extracted-text hashes and ranks exact passages with BM25.
+
+Review and select the passages, then **Freeze selected passages into a branch**. Sources
+with unknown or later availability cannot enter that historical scenario. Numerical
+assumptions stay unchanged. Preview the new context in Research desk before sending it to
+your models. Document instructions are untrusted source data.
+
+Build a **cited research report** from the loaded scenario or selected model session.
+Download Markdown or printable HTML, or choose **Print / Save as PDF** in your browser.
+The report includes forecast structures, audit flags, unresolved observations and an exact
+source appendix. It excludes synthetic settlement and future paths. Review redistribution
+rights before sharing. Scanned PDFs require a verified text transcription; OCR is not bundled.
+
+<p align="center"><img src="assets/qa/cited-report.jpg" width="1000" alt="Tradefloor cited report preview, generated from a frozen scenario containing fictional source excerpts."></p>
+
+The standalone demo offers fictional source inspection and report export. Real document
+imports, source requests and model calls require the local workspace.
+
 ## Use with Claude Code
 
 Tradefloor includes a Claude Code plugin with seven research skills, analyst agent
-definitions and the same 61 MCP tools used by the CLI. Install
+definitions and the same 64 MCP tools used by the CLI. Install
 [Claude Code](https://code.claude.com/docs/en/overview) and
 [uv](https://docs.astral.sh/uv/), sign in to Claude Code, then run these commands from
 the **Tradefloor repository root**:
@@ -231,6 +255,9 @@ evaluation, agent memory and portfolio tools; `tradefloor list` prints every sig
 | Four numerical models and supplied model forecasts | `forecast_arena`, `robust_evaluation` |
 | Immutable information vintages and archival metadata | `information_timeline`, `archival_fetch` (SEC / ALFRED) |
 | Document spans, retractions and claim dependencies | `document_changes`, Evidence view |
+| Local source library, exact passage search and evidence freezing | `research_library`, Sources & reports |
+| SEC filing discovery and reviewed public document capture | `source_discovery` |
+| Cited reports and browser PDF export | `research_report` |
 | Dated agent assessments, outcomes and experiment protocols | `research_record`, `research_memory` |
 | Cancellable, restartable local jobs | `research_job` |
 | Factor shocks, constrained allocation and option benchmarks | `factor_stress`, `portfolio_allocate`, `option_implied`, `market_diagnostics` |

@@ -1,4 +1,4 @@
-# Research workspace (0.4)
+# Research workspace (0.5)
 
 Run `uv run --project server python -m tradefloor.demo` and open `http://127.0.0.1:8765`.
 The prior scenario view remains at `/lab`. The workspace and numerical tools work locally;
@@ -272,6 +272,44 @@ numerical assumptions, and the selected input retracted. Dependent scenario clai
 for review; a new research plan excludes that retracted input. It does not edit the original
 session or run providers. Imported session maps and the static demo cannot create branches.
 The static demo retains map inspection, filters and navigation on its frozen scenarios.
+
+## Sources and cited reports
+
+`research_library` lists, imports, opens and searches immutable local documents. Text and
+Markdown are preserved as text; HTML scripts/forms/styles are excluded. PDF extraction runs
+in a separate process with a 20-second timeout. Limits are 5 MB of raw input, 200,000 extracted
+characters, 200 PDF pages, 250 documents and 100 MB of serialized library records. Encrypted,
+scanned, malformed and oversized PDFs fail visibly. OCR is not included; extracted PDF text
+and table layout need user verification. A worker timeout is not a complete malicious-PDF
+sandbox or a strict memory guarantee.
+
+Original bytes and extracted text have separate hashes. Exact extracted-text spans retain
+character offsets; a span does not assert the fidelity of PDF extraction to the original
+visual page. Local BM25 ranking returns up to 50 matching passages, with date eligibility
+against the loaded scenario. Relevance and content hashes do not establish source truth.
+
+Select up to 20 passages to preview and freeze into a new child scenario. Both publication
+and availability must be known and no later than the original cutoff. These dates are asserted;
+retrieving a document today does not establish its past version. Freezing preserves prices,
+numerical assumptions and the parent receipt. Exact anchors remain in the receipt; model
+context includes the selected passage and hashes, not the entire underlying document.
+The 48 KB context limit still applies. New sources are sent only after plan preview and Start.
+
+`source_discovery` explicitly discovers recent SEC filing metadata or captures a selected
+public document. SEC uses the Data hub contact. Captures allow public HTTPS on port 443,
+reject credentials/query strings/private addresses, pin the validated IP while preserving
+TLS hostname verification, and do not follow redirects. At most 5 MB is downloaded.
+This is a capture interface, not an unrestricted autonomous web-search or archival feed.
+Source redistribution rights remain the user's responsibility.
+
+`research_report` produces structured records, escaped Markdown and printable HTML from a
+scenario/session. It includes the question, provenance, numerical assumptions, conditional
+forecasts, structured claims/references, rejected adjustments, observations and source appendix.
+No synthetic settlement or future path is included. Reports retain failure/abstention and
+import trust status; passing reference checks do not establish meaning or predictive skill.
+The UI supports report preview, downloads and browser Print / Save as PDF. The standalone
+demo supports fictional source inspection and scenario report export; it cannot import
+documents, capture sources or freeze evidence.
 
 ## Deployment boundary
 

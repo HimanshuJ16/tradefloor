@@ -229,6 +229,27 @@ def data_source_settings(action: str = "get", body: dict | None = None, api_key:
     return datahub.source_settings(action, body, api_key)
 
 
+@tool
+def research_library(action: str = "list", document_id: str | None = None, body: dict | None = None) -> dict:
+    """Import/search immutable text, HTML or PDF; freeze selected dated exact spans into an evidence branch."""
+    from . import library
+    return library.documents(action, document_id, body)
+
+
+@tool
+def source_discovery(action: str = "sec", body: dict | None = None) -> dict:
+    """Explicitly discover SEC filing metadata or capture a bounded public HTTPS source. Makes provider requests."""
+    from . import library
+    return library.discovery(action, body)
+
+
+@tool
+def research_report(run_id: str | None = None, session_id: str | None = None) -> dict:
+    """Build cited Markdown/printable HTML from frozen research. No model calls or synthetic settlement reveal."""
+    from . import reports
+    return reports.report(run_id, session_id)
+
+
 def register(mcp):
     for fn in TOOLS.values():
         mcp.tool()(fn)

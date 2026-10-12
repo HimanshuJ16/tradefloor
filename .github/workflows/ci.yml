@@ -48,14 +48,18 @@ jobs:
           node --check server/src/tradefloor/assets/desk.js
           node --check server/src/tradefloor/assets/research-map-model.js
           node --check server/src/tradefloor/assets/research-map.js
+          node --check server/src/tradefloor/assets/source-view.js
+          node --check server/src/tradefloor/assets/sources.js
           node --test tests/frontend.test.cjs
           node --test tests/workspace-model.test.cjs
           node --test tests/research-map.test.cjs
+          node --test tests/sources.test.cjs
       - name: Install built wheel and verify assets
         shell: bash
         run: |
           wheel=$(find dist -name '*.whl' -print -quit)
-          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'research_session' in cli.TOOLS; html = demo.workspace_document(); assert 'A thesis is a starting point.' in html; assert 'TradefloorView' in html; assert 'desk-session-meta' in html; assert 'TradefloorMapModel' in html; assert '/*DESK*/' not in html; assert '/*RESEARCH_MAP*/' not in html; print('wheel verified')"
+          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'research_library' in cli.TOOLS; assert 'research_report' in cli.TOOLS; html = demo.workspace_document(); assert 'A thesis is a starting point.' in html; assert 'TradefloorView' in html; assert 'desk-session-meta' in html; assert 'TradefloorMapModel' in html; assert 'TradefloorSources' in html; assert '/*DESK*/' not in html; assert '/*RESEARCH_MAP*/' not in html; assert '/*SOURCES*/' not in html; print('wheel verified')"
+          uv run --locked --project server python tools/smoke_mcp.py "$wheel"
       - uses: actions/upload-artifact@v4
         with:
           name: python-distributions

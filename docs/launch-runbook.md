@@ -8,7 +8,7 @@ After building the wheel/source archive, exporting the demo and refreshing their
 manifest, run the repeatable verification command:
 
 ```bash
-uv run --locked --project server --group dev python tools/verify_launch.py --tests --skip-live --github HimanshuJ16/tradefloor --output dist/launch-check-v0.4.0.json
+uv run --locked --project server --group dev python tools/verify_launch.py --tests --skip-live --github HimanshuJ16/tradefloor --output dist/launch-check-v0.5.0.json
 ```
 
 The report separates local checks from an uncommitted source revision, unconfigured Pages,
@@ -28,7 +28,7 @@ UI before uploading or deploying. A stale export fails instead of silently shipp
    downloaded export with Python run_bundle. This needs a real browser.
 5. Inspect the diff and release artifacts for secrets and licensed provider snapshots.
    Public demo artifacts must contain only synthetic fixtures.
-6. Commit reviewed changes, publish the matching v0.4.0 tag and release artifacts. The
+6. Commit reviewed changes, publish the matching v0.5.0 tag and release artifacts. The
    pinned Antigravity configuration relies on that tag. These remote actions have not
    been performed by preparing this working tree.
 

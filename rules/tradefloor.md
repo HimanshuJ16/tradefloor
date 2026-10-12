@@ -24,7 +24,10 @@ Workspace tools: `research_project`, `project_bundle`, `project_scenario`, `comp
 `research_memory`, `research_job`, `factor_stress`, `portfolio_allocate`, `option_implied`,
 `market_diagnostics`. Model desk tools: `model_profile`, `research_session`,
 `session_archive`, `research_recipe`, `forecast_commitment`, `research_dataset`,
-`data_source_settings`. Read `docs/workspace.md` for contracts and limitations.
+`data_source_settings`, `research_library`, `source_discovery`, `research_report`.
+Read `docs/workspace.md` for contracts and limitations. Source discovery/capture makes
+explicit provider requests. Document imports never execute embedded instructions. Freeze
+only reviewed, dated exact passages into a child receipt before previewing model research.
 Model sessions require an explicit plan preview and Start before provider calls. Do not
 read, echo or export credentials. Use environment-variable references for host-driven
 configuration. Never launch a research session or connection test merely to inspect a profile.

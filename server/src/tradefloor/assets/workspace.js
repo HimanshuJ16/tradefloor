@@ -363,6 +363,7 @@
   $("file").addEventListener("change", event => { const file = event.target.files[0]; if (!file) return; guarded(async () => { if (file.size > (state.importing === "project" ? 20000000 : 2000000)) throw new Error("File exceeds import size limit."); const raw = await file.text(), b = JSON.parse(raw); if (state.importing === "project") { const p = await api("project_bundle", { payload: b }); await refreshProjects(p.id); await loadProject(p.id); } else if (offline) { render({ result: { ...b.result, run: { run_id: b.id, sha256: b.sha256 } }, bundle_json: raw }, true); } else { const res = await fetch("/api/scenario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "import", bundle_json: raw }) }); const data = await res.json(); if (!res.ok || data.error) throw new Error(data.error); render(data); await attach(); } }).finally(() => { event.target.value = ""; }); });
   if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => { if (state.current && !$("view-thesis").hidden) fan(state.current.result); }).observe($("fan"));
   const commands = [
+    ["Sources and reports · import documents, discover filings, export cited research", "sources"],
     ["Research desk · models, sessions and disagreements", "desk"], ["Models and keys · connection settings", "connections"], ["Data hub · import or capture daily history", "data"],
     ["Thesis · inspect the scenario", "thesis"], ["Branches · compare saved runs", "compare"],
     ["Model arena · compare forecasts", "models"], ["Evidence · inspect sources and claims", "evidence"],
@@ -400,6 +401,6 @@
       if (job) status(`An earlier ${job.kind} job is ${job.state}. Use the research_job CLI to inspect or cancel it.`);
     } catch (e) { status(e.message, true); busy(false); }
   }
-  window.TradefloorWorkspace = { api, status, tab, render, offline, current: () => state.current };
+  window.TradefloorWorkspace = { api, status, tab, render, attach, offline, current: () => state.current };
   init();
 })();

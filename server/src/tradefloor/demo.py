@@ -44,12 +44,14 @@ def document(embedded: dict | None = None) -> str:
 def workspace_document(embedded: dict | None = None) -> str:
     html = (ASSETS / "workspace.html").read_text(encoding="utf-8")
     payload = canonical(embedded or {}).replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    return (html.replace("/*STYLE*/", (ASSETS / "workspace.css").read_text(encoding="utf-8") + (ASSETS / "desk.css").read_text(encoding="utf-8") + (ASSETS / "research-map.css").read_text(encoding="utf-8"))
+    return (html.replace("/*STYLE*/", (ASSETS / "workspace.css").read_text(encoding="utf-8") + (ASSETS / "desk.css").read_text(encoding="utf-8") + (ASSETS / "research-map.css").read_text(encoding="utf-8") + (ASSETS / "sources.css").read_text(encoding="utf-8"))
             .replace("<!--DESK_PANELS-->", (ASSETS / "desk.html").read_text(encoding="utf-8"))
+            .replace("<!--SOURCE_PANELS-->", (ASSETS / "sources.html").read_text(encoding="utf-8"))
             .replace("/*DATA*/", "window.DEMO_DATA=" + payload + ";")
             .replace("/*MODEL*/", (ASSETS / "workspace-model.js").read_text(encoding="utf-8"))
             .replace("/*APP*/", (ASSETS / "workspace.js").read_text(encoding="utf-8"))
             .replace("/*RESEARCH_MAP*/", (ASSETS / "research-map-model.js").read_text(encoding="utf-8") + "\n" + (ASSETS / "research-map.js").read_text(encoding="utf-8"))
+            .replace("/*SOURCES*/", (ASSETS / "source-view.js").read_text(encoding="utf-8") + "\n" + (ASSETS / "sources.js").read_text(encoding="utf-8"))
             .replace("/*DESK*/", (ASSETS / "desk.js").read_text(encoding="utf-8")))
 
 

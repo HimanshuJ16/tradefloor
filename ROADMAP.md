@@ -1,6 +1,22 @@
 # Roadmap
 
+## Implemented for 0.5.0
+
+- Immutable local text/HTML/PDF document library with original/extracted hashes and exact spans.
+- BM25 passage search, source dates/rights, bounded imports and visible PDF extraction failures.
+- Explicit SEC filing discovery and public HTTPS capture with pinned public-address connections.
+- Reviewed passage selection frozen into a child scenario before model-context preview.
+- Cited research reports, Markdown/printable HTML export and browser Print / Save as PDF.
+- Source examples and report export in the standalone synthetic demo.
+
+Scheduled desk automation, native additional provider protocols, portfolio/watchlist UI,
+native external research-engine adapters and externally witnessed prospective performance
+remain future work. These are not required to try the first public research demonstration.
+
 ## Implemented for 0.4.0
+
+- Interactive research map, recorded checkpoint replay, reference/dependency inspection,
+  disagreement filtering, accessible list, cinematic/reduced-motion views and withdrawal forks.
 
 - Model profiles for streaming Chat Completions / Anthropic Messages and compatible
   local endpoints; OS-vault or server-environment credentials, connection tests and role routing.
