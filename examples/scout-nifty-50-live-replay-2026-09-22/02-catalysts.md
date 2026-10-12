@@ -6,8 +6,8 @@
 | SWIGGY.NS | LONG | sector | "Food delivery, quick commerce largely shielded from UPI MDR despite high digital payments" (2026-09-21, Business Today) [news] | none identified |
 | DIXON.NS | SHORT | none | no relevant headlines returned | none identified |
 | COALINDIA.NS | LONG | fresh | "'Everything Is Set For Coal India To Make Money': Why Parag Thakkar Is Bullish On The Miner" (2026-09-22 10:20 IST, NDTV Profit) [news] | none identified |
-| INFY.NS | SHORT | none | "Infosys (INFY.NS) Slips 1.23% to ₹1038.5 as IT Major Consolidates Below Resistance" (2026-09-22 09:13 IST, siam.in) [news] — a price recap, not a substantive catalyst | none identified |
-| IDEA.NS | LONG | none | no pre-scan headlines; a Vi/ACES Mumbai Metro deal story exists but published 2026-09-22 15:16 IST, after the scan — excluded as look-ahead | none identified |
+| INFY.NS | SHORT | none | "Infosys (INFY.NS) Slips 1.23% to ₹1038.5 as IT Major Consolidates Below Resistance" (2026-09-22 09:13 IST, siam.in) [news] - a price recap, not a substantive catalyst | none identified |
+| IDEA.NS | LONG | none | no pre-scan headlines; a Vi/ACES Mumbai Metro deal story exists but published 2026-09-22 15:16 IST, after the scan - excluded as look-ahead | none identified |
 | SBIN.NS | SHORT | none | no pre-scan headlines (all SBI items published after 11:15 IST) | none identified |
 | BSE.NS | LONG | none | no pre-scan headlines; post-scan items are unrelated small-cap compliance filings on the BSE exchange, not BSE Ltd itself | none identified |
 

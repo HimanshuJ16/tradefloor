@@ -1,5 +1,63 @@
 # Changelog
 
+## Unreleased
+
+Changed
+- Replaced em dashes and their HTML/Unicode encodings with plain hyphens throughout
+  project documentation, archived examples and browser labels/placeholders.
+- Added the missing 0.4.0 and 0.5.0 release history below.
+
+## 0.5.0 (2026-10-12)
+
+Added
+- Immutable local text, Markdown, HTML and text-based PDF source library with original-byte
+  and extracted-text hashes, exact character spans and BM25 passage search.
+- Explicit SEC filing discovery and bounded public HTTPS document capture, with public-IP
+  connection pinning, TLS hostname verification and date/redistribution-rights review.
+- Reviewed passages frozen into a child scenario on unchanged prices and numerical
+  assumptions before a separate model-context preview and Start.
+- Cited research reports with forecast structures, reference audits, unresolved observations
+  and exact source appendices. Markdown/HTML downloads and browser Print / Save as PDF.
+- Fictional source inspection and scenario report export in the standalone demo.
+- Three shared CLI/MCP tools: `research_library`, `source_discovery` and `research_report`
+  (64 tools total), plus a packaged stdio MCP smoke workflow.
+
+Changed
+- Evidence branches now attach to the active saved project.
+- Updated host manifests, package version, README and release documentation for 0.5.0.
+- Published and browser-verified the synthetic-only GitHub Pages demo and release artifacts.
+
+Validation: 233 Python tests, 23 frontend tests and the GitHub OS/Python matrix passed.
+The packaged MCP workflow, real public-document capture and desktop/mobile public demo
+were checked. Cloud model calls remained skipped; model-driven host sessions, forecasting
+skill and historical source completeness remain unverified. Scanned PDFs require a verified
+text transcription; extraction is time-bounded, not a complete malicious-document sandbox.
+
+## 0.4.0 (implemented 2026-10-12)
+
+Added
+- User-selected model profiles for streaming OpenAI-compatible Chat Completions and
+  Anthropic Messages, including compatible local endpoints and per-role routing.
+- OS credential-store or named environment-variable keys, explicit connection tests,
+  frozen-context/destination previews, usage limits and supplied-price cost estimates.
+- Bounded model research sessions, read-only tool receipts, streamed activity, cancellation,
+  saved transcripts, independent comparisons, follow-up questions and reusable recipes.
+- Structured quote/numeric-reference audits, bounded probability adjustments, disagreements,
+  objections and proposed observations to resolve them.
+- Portable session archives, cutoff-safe memory, future local forecast commitments,
+  supplied-outcome Brier/log-loss scoring and reliability bins.
+- Daily CSV import, explicit Yahoo history capture and SEC/ALFRED source settings.
+- Interactive research map with exact-record inspection, search, filters, neighborhood focus,
+  zoom/pan, cinematic/reduced-motion views, accessible lists and recorded checkpoint replay.
+- Evidence-withdrawal previews and immutable child receipts with dependent review flags.
+
+Fixed
+- Malformed model-response handling, sealed-memory verification, credential rotation and
+  score grouping for distinct connections that share a model alias.
+- Early-load preview races and browser archive number serialization.
+
+This work shipped with 0.5.0; no separate 0.4.0 release tag was published.
+
 ## 0.3.0 (prepared 2026-10-11)
 
 - Persistent responsive research workspace: projects, revision history, branch comparisons,

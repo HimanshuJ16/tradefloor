@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-    <img src="assets/logo.svg" width="460" alt="Tradefloor — financial research and open source">
+    <img src="assets/logo.svg" width="460" alt="Tradefloor - financial research and open source">
   </picture>
 </p>
 
@@ -26,7 +26,7 @@ models, bounded research sessions and inspectable forecast adjustments to the lo
 
 ## Try the workspace
 
-**[Open the live synthetic demo](https://himanshuj16.github.io/tradefloor/)** — no signup,
+**[Open the live synthetic demo](https://himanshuj16.github.io/tradefloor/)** - no signup,
 API keys or installation. Choose an event, challenge its assumptions, inspect the research
 map and export a cited report. Real sources and user-selected models run in the local workspace.
 

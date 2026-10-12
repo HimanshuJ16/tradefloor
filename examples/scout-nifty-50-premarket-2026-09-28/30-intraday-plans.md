@@ -1,7 +1,7 @@
 # Intraday orders: nifty 50, scan at 2026-09-27 16:31 IST
-Data: 15 min exchange delay [intraday_scan]. Age: n/a — premarket scan priced off the 2026-09-25 close, no live tape yet [tape]. Square off by 15:05 IST [intraday_scan].
+Data: 15 min exchange delay [intraday_scan]. Age: n/a - premarket scan priced off the 2026-09-25 close, no live tape yet [tape]. Square off by 15:05 IST [intraday_scan].
 
-No trade is priced yet. Regime is range with no favoured side, so per the range-day rule only KOTAKBANK.NS is eligible to actually fire (grade A + fresh catalyst) [shortlist]; the other three are watch-only. All four use the same two-sided opening-range rule: wait for the first 15 minutes, then trade the break with volume. Sizes and rupee stop-loss cannot be set until the real opening range prints — recompute qty and loss-at-stop from the actual range and the account's risk-per-trade setting.
+No trade is priced yet. Regime is range with no favoured side, so per the range-day rule only KOTAKBANK.NS is eligible to actually fire (grade A + fresh catalyst) [shortlist]; the other three are watch-only. All four use the same two-sided opening-range rule: wait for the first 15 minutes, then trade the break with volume. Sizes and rupee stop-loss cannot be set until the real opening range prints - recompute qty and loss-at-stop from the actual range and the account's risk-per-trade setting.
 
 | Symbol | Side | Trigger | Stop | Target 1 | Target 2 | Qty | Loss at stop | Invalidation |
 |---|---|---|---|---|---|---|---|---|

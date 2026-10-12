@@ -21,8 +21,8 @@ Same prompt, same machine, run at the same time, with `--plugin-dir tradefloor`.
 
 | | Index level | Distance | Reward:risk |
 |---|---|---|---|
-| Entry zone | 22,735 – 22,837 | at the current price | — |
-| **Stop** | **22,207** | −2.8% | — |
+| Entry zone | 22,735 – 22,837 | at the current price | - |
+| **Stop** | **22,207** | −2.8% | - |
 | Target 1 | 23,783 | +4.1% | 1.5 |
 | Target 2 | 24,129 | +5.7% | 2.05 |
 | Target 3 | 24,413 | +6.9% | 2.5 |

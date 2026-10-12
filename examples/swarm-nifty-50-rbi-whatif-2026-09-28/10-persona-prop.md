@@ -1,11 +1,11 @@
 # Proprietary and algorithmic desks on ^NSEI, horizon 1m
 
 ## What we see
-- E1: A 1,000+ point Sensex/Nifty gap-and-grind lower on crude/Iran/yields/FPI headlines is exactly our bread and butter for the session — we sold with the tape from the open and kept adding on every leg down, since news-flow weight and participation are our highest-weighted triggers.
-- E2: The Rs 5-6 lakh crore wipeout number is a flow/sentiment confirmation, not a new signal on its own — it tells us the move had real conviction behind it (wide participation, not a thin air-pocket), which is why we stayed with it rather than fading early.
-- E4: Nifty testing its 200-week MA for the first time in six years is the kind of level our trend and mean-reversion books both watch intraday — expect sharp two-way action and stop-runs around it on any retest, good for algo turnover even if we don't hold a directional view on it.
-- Deeply oversold RSI14 (27.7), stochastic (2.1/5.9) and %B at -0.01 with ADX 33.6 confirming trend strength: this is a classic "sell the trend, but respect a violent relief bounce" setup for us — we'll flip tactically long intraday if a reversal candle prints near 22,331 support, then flatten again.
-- E3, E5, E6, E7: background context (breadth deterioration, 12% drawdown from peak, macro commentary, NSE listing weakness) — informs our risk appetite and stop placement but isn't itself a trigger; we don't carry a fundamental view on any of it.
+- E1: A 1,000+ point Sensex/Nifty gap-and-grind lower on crude/Iran/yields/FPI headlines is exactly our bread and butter for the session - we sold with the tape from the open and kept adding on every leg down, since news-flow weight and participation are our highest-weighted triggers.
+- E2: The Rs 5-6 lakh crore wipeout number is a flow/sentiment confirmation, not a new signal on its own - it tells us the move had real conviction behind it (wide participation, not a thin air-pocket), which is why we stayed with it rather than fading early.
+- E4: Nifty testing its 200-week MA for the first time in six years is the kind of level our trend and mean-reversion books both watch intraday - expect sharp two-way action and stop-runs around it on any retest, good for algo turnover even if we don't hold a directional view on it.
+- Deeply oversold RSI14 (27.7), stochastic (2.1/5.9) and %B at -0.01 with ADX 33.6 confirming trend strength: this is a classic "sell the trend, but respect a violent relief bounce" setup for us - we'll flip tactically long intraday if a reversal candle prints near 22,331 support, then flatten again.
+- E3, E5, E6, E7: background context (breadth deterioration, 12% drawdown from peak, macro commentary, NSE listing weakness) - informs our risk appetite and stop placement but isn't itself a trigger; we don't carry a fundamental view on any of it.
 - RBI MPC (Oct 7) and the Q2 earnings calendar sit inside the horizon but are single-day event risk we'll trade tactically as they arrive, not something we're positioning for now.
 
 ## What we do
