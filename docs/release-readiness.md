@@ -52,10 +52,22 @@ Screenshots contain only fictional fixtures: [cited report](../assets/qa/cited-r
 
 ## Publication status
 
-The owner pushed 0.4 changes and GitHub CI passed. The 0.5 source changes are currently
-prepared for review/commit, Pages deployment, public browser QA and release publication.
-Update this section with actual deployment/release evidence after those steps complete.
-No Hacker News submission has been made.
+Implementation commit `bcb12d5` is pushed. GitHub CI passed all nine Ubuntu/Windows/macOS
+Python 3.11/3.12/3.13 jobs and the package/MCP job:
+[CI run](https://github.com/HimanshuJ16/tradefloor/actions/runs/38253623612).
+The synthetic Pages workflow passed its tests/artifact gate and deployed:
+[deployment](https://github.com/HimanshuJ16/tradefloor/actions/runs/38253690188).
+
+**Public demo:** https://himanshuj16.github.io/tradefloor/
+
+Real-browser public QA verified all three scenario switches, a precomputed assumption fork,
+synthetic outcome reveal, source/report preview, browser HTML download and the interactive
+map. Mobile thesis/report layouts had no document-wide overflow. No captured console errors.
+[Public deployment screenshot](../assets/qa/public-demo.jpg).
+
+The 0.5 tag/release is being finalized from the reviewed source. No Hacker News submission
+has been made. Cloud provider calls and model-driven host sessions remain unverified, as
+stated above; the public launch is an experimental synthetic research demonstration.
 
 The only supported public hosting target is the standalone synthetic HTML. The loopback
 workspace has no multi-user authentication or tenant isolation and remains local.

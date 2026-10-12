@@ -29,8 +29,7 @@ UI before uploading or deploying. A stale export fails instead of silently shipp
 5. Inspect the diff and release artifacts for secrets and licensed provider snapshots.
    Public demo artifacts must contain only synthetic fixtures.
 6. Commit reviewed changes, publish the matching v0.5.0 tag and release artifacts. The
-   pinned Antigravity configuration relies on that tag. These remote actions have not
-   been performed by preparing this working tree.
+   pinned Antigravity configuration relies on that tag. The 0.5 release is being finalized after the verified Pages deployment.
 
 ## Public demo
 
@@ -41,7 +40,7 @@ supported public demo path; the loopback Python server is not a hosted service.
 
 Alternatively, select **GitHub Actions** as the repository's Pages source and manually run
 `pages.yml`. It tests and builds a synthetic-only static artifact, then deploys through
-the `github-pages` environment. This workflow is prepared but has not been dispatched.
+the `github-pages` environment. The 0.5 workflow has been dispatched and its public URL verified.
 Verify the resulting public URL in a real browser before adding it to README or Show HN.
 
 For the local workspace, also exercise project save/reopen, compare, counterexample jobs,
@@ -51,31 +50,51 @@ cancellation, evidence retraction/freeze, archive import/export and model arena.
 Add the actual live demo URL to README after verifying it. Keep the release wheel and
 source tag available for users who want custom snapshots or arbitrary assumptions.
 
-## Show HN draft
+## Verified public demo and Show HN draft
 
-Title: **Show HN: Tradefloor — an open financial scenario lab that keeps its assumptions**
+Live demo: **https://himanshuj16.github.io/tradefloor/**
+Source: **https://github.com/HimanshuJ16/tradefloor**
+Release target: **https://github.com/HimanshuJ16/tradefloor/releases/tag/v0.5.0**
 
-Suggested opening (adapt in your own voice):
+Public browser QA covered scenario switching, assumption forks, outcome reveal, map
+inspection, source/report preview and HTML export on desktop/mobile. The Pages build
+checks the synthetic-only receipts before deployment. Publish only this static artifact.
 
-> I built Tradefloor to turn market narratives into experiments I can inspect later.
-> The demo uses fictional data: choose an event, challenge the reaction assumptions,
-> compare baselines, reveal an outcome and export or fork the frozen run. No signup or
-> API key. The Python CLI/MCP also supports market research and an experimental constrained
-> order book. I have not demonstrated a trading edge. I'd especially like feedback on
-> falsification, evaluation and how the assumptions should be tested.
+Submission title (review before posting):
 
-Link the playable demo and source. Explain personal motivation and what you built;
-avoid world-first/profitability claims, launch hype, or presenting agent personas as real
-institutional flows. Be present to answer technical questions.
+**Show HN: Tradefloor - a local financial research desk with inspectable evidence**
 
-Before posting, verify the public demo, a clean installation from the published source,
-and one actual research workflow in each AI host advertised in README. Check the pushed
-revision's CI results. Share the project as an experimental research workspace and keep
-the feature scope and validation limits visible. A GitHub push alone does not verify these.
+Submission URL:
 
-[Show HN guidelines](https://news.ycombinator.com/showhn.html) favor things people can
-try without barriers. The [current Show HN restriction notice](https://news.ycombinator.com/showlim)
-also discusses participation eligibility; review it on launch day. Do not solicit votes.
+**https://himanshuj16.github.io/tradefloor/**
+
+Suggested first comment; edit the personal motivation to match your experience:
+
+> I built Tradefloor to make market narratives inspectable: what assumptions drive a
+> conclusion, which sources support it, and what would change the thesis?
+>
+> The demo runs entirely in the browser on fictional data, without signup or API keys.
+> You can choose an event, change reaction assumptions, compare numerical baselines,
+> inspect evidence connections, reveal a synthetic outcome and export a cited report.
+>
+> Locally, the Python CLI/MCP and workspace add persistent projects, text/HTML/PDF sources,
+> exact passage search, explicit source capture, user-selected model roles, recorded replay,
+> probability/reference audits and supplied-outcome scoring. Sources are reviewed and frozen
+> before model calls. The map shows recorded relationships, not private model reasoning.
+>
+> This is experimental research software. I have not demonstrated a trading edge. The
+> agents' judgments and source dates still require review. Cloud-provider canaries and full
+> model-driven host sessions were not run for this release; the packaged MCP workflow,
+> offline tests and public demo were verified. Broker execution is out of scope.
+>
+> Source: https://github.com/HimanshuJ16/tradefloor
+> I'd like feedback on the evidence workflow, scenario falsification and evaluation design.
+
+The draft is prepared; it has not been submitted. Review it in your own voice and remain
+available to discuss the design and limitations. Don't solicit votes. The
+[Show HN guidelines](https://news.ycombinator.com/showhn.html) favor projects users can try
+without barriers, and allow early-stage work. Check the
+[current participation restriction notice](https://news.ycombinator.com/showlim) before posting.
 
 ## What cannot be completed by a code release
 

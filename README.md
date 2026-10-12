@@ -26,6 +26,10 @@ models, bounded research sessions and inspectable forecast adjustments to the lo
 
 ## Try the workspace
 
+**[Open the live synthetic demo](https://himanshuj16.github.io/tradefloor/)** — no signup,
+API keys or installation. Choose an event, challenge its assumptions, inspect the research
+map and export a cited report. Real sources and user-selected models run in the local workspace.
+
 Requires [uv](https://docs.astral.sh/uv/) and Python 3.11+ (uv can provision Python).
 
 ```bash
