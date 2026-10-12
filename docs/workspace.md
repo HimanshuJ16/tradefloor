@@ -1,4 +1,4 @@
-# Research workspace (0.3)
+# Research workspace (0.4)
 
 Run `uv run --project server python -m tradefloor.demo` and open `http://127.0.0.1:8765`.
 The prior scenario view remains at `/lab`. The workspace and numerical tools work locally;
@@ -20,6 +20,110 @@ The thesis summary derives its direction, baseline probability shift and evidenc
 from the loaded receipt. It does not independently evaluate the evidence or infer causality.
 Press **Ctrl+K / Cmd+K** to search views and available actions. Enter selects the first match;
 Escape closes the menu. Mobile controls expand from **Project & assumptions**.
+
+## Model connections and sessions
+
+**Models & keys** saves a name, exact model ID, versioned API base URL and protocol.
+Supported protocols are streaming OpenAI-compatible `/chat/completions` and Anthropic
+`/messages`. Ollama/LM Studio and compatible gateways use the former. Models must return
+the structured JSON research contract; unsupported or truncated responses remain failures.
+There is no promise that every provider, model or API feature works with either protocol.
+The connection test sends one fixed small prompt, not private research, and may be billable.
+
+Use an OS credential store or a server environment-variable name. Supported vault backends
+are Windows Credential Manager, macOS Keychain and Linux Secret Service. No plaintext vault
+fallback is permitted. Headless systems should use environment variables. Keys are scoped
+to the resolved Tradefloor data home and are never saved to SQLite, localStorage or archives.
+Environment keys take precedence within a profile. Changing a stored key's destination
+requires re-entering it. Redirects and proxy-environment forwarding are disabled. Custom
+remote endpoints require HTTPS; plain HTTP is limited to explicit loopback addresses.
+Other local processes with access to the same OS account are outside the application boundary.
+
+**Research desk** supports Quick (researcher/risk), Balanced (researcher/bull/bear/risk),
+Deep (plus synthesis), independent comparison of two to four connections, and single-role
+questions. Connections can differ by role. Bull/bear answers are independent; risk/synthesis
+receive earlier outputs as untrusted text. Comparison models never receive each other's answers.
+
+Preview freezes the source receipt, eligible active evidence, numerical prior, reaction
+assumptions, dated memory and available timeline records. The model context excludes the
+synthetic settlement and future price path. Large contexts fail visibly at 48 KB rather
+than silently dropping evidence. Follow-up questions include earlier model answers as
+untrusted research on the same receipt. None of this establishes a model's training cutoff;
+retrospective sessions are not prospective performance evidence.
+
+Start submits a durable job. The worker permits at most 20 calls, 128–4096 requested output
+tokens per call, 120 seconds per model request, 1 MB per stream and 64 KB of model text.
+Each role can request one follow-up from five allowlisted read-only tools: evidence,
+assumptions, frozen baseline probabilities, dated research memory and the information timeline.
+Tools return the previewed frozen context, not a new web search or fresh market snapshot.
+No shell or code proposed by a model is executed. Cancel preserves partial output; cancellation
+is cooperative and an in-flight call may still be billed. Stream reads time out after 20 seconds
+without data. Reclaimed interrupted model sessions stop for review; they never automatically
+repeat potentially billable requests. Starting the same plan twice is idempotent.
+
+Pricing is supplied by the user in USD per million input/output tokens. Blank means unknown,
+zero explicitly means free. A cost cap requires known prices and must cover a conservative
+preflight reservation. Reported token counts produce calculated cost when available; missing
+usage remains unknown. Reservation uses bounded UTF-8 input sizes and prior response ceilings,
+not a model tokenizer. These controls do not guarantee the provider's invoice, pricing,
+special token fees or enforcement of its requested output limit.
+
+## Reviewing model research
+
+Claims carry evidence IDs, optional exact source excerpts and numeric reference paths.
+Audits flag unknown/missing citations, absent quoted text, mismatched numbers and prose
+numbers lacking structured references. A passing reference check does not establish truth,
+entailment, causality or completeness; unstructured summary numbers are not verified.
+Probability proposals must sum to one, cite eligible evidence for each change and stay
+within 0.10 of the frozen quant prior in every class. Failed proposals remain visible and
+are excluded from validated forecast comparisons. Abstentions and role failures are retained.
+
+The disagreement view compares validated forecast directions/class gaps and displays
+model-supplied assumptions, objections and proposed observations/tests. It does not automatically
+prove which objection is correct or execute the proposed tests. Recipes save questions,
+role routing and limits without scheduling autonomous calls.
+
+Complete sessions can be exported with source receipts, prompts/context, activity and responses.
+They contain private research and provider data but no connection credentials. Archive import
+checks hashes, the original source receipt and its context, then recomputes reference audits.
+Exports preserve canonical JSON in a string envelope so browser numeric formatting cannot
+invalidate nested session/plan hashes.
+Malformed model lists, summaries and observation proposals fail visibly before rendering.
+Malformed probability adjustments remain rejected proposals rather than crashing the audit.
+Closed session memory is checked against its saved seal before retrieval.
+Imported research is stored separately, clearly marked untrusted, and never automatically
+executed. Hashes do not authenticate an author or establish an external publication date.
+Local sessions can be reopened and continued through browser, CLI or MCP contracts.
+
+**Freeze forecasts** requires validated non-abstaining output, a future settlement close
+and an explicit rule. The supplied close must be no earlier than the event's minimum calendar
+horizon; the user must choose the actual exchange trading-calendar close. A local commitment
+is not external preregistration. Settlement requires a matured, currently available outcome
+and a source; outcomes are user-supplied rather than independently market-verified. Brier,
+log-loss and reliability summaries separate synthetic and supplied-history groups. Multiple
+roles on one event remain correlated forecasts. No automatic ranking, trust weight or promotion
+is learned from these scores. Use `robust_evaluation` for explicit paired evaluation designs.
+Score groups distinguish the connection, endpoint/protocol and requested model identifier;
+identical model aliases on different connections are not merged. Older scores without that
+identity are grouped separately as legacy records.
+
+## Data hub
+
+Import a daily CSV with 252–20,000 rows and unique ordered ISO dates. Date/Close are required;
+Open/High/Low/Volume are supported. Scenario analytics require supplied High and Low; missing
+intraday ranges are never invented. Imports retain the symbol, source, adjustment basis,
+asserted availability and data rights. Values must be finite, prices positive, volume nonnegative.
+
+Yahoo Finance captures are explicit provider requests, frozen at capture time. Refreshed
+adjusted history does not establish an archival vintage. If a dataset was captured after its
+last price cutoff, the source is labeled an availability-unverified assumption when opening
+a scenario. CSV dates and source availability are asserted metadata, not proof of historical
+completeness. Imported-data scenarios have no fabricated synthetic settlement.
+
+Configure the SEC contact header and an ALFRED OS-vault/environment key in Data hub, then
+fetch a selected source in Information timeline. Existing `TRADEFLOOR_SEC_USER_AGENT` and
+`FRED_API_KEY` environment variables take precedence. Saving settings never fetches data.
+The public static artifact disables all model, credential, dataset and mutable session controls.
 
 ## Research loop
 
@@ -135,6 +239,39 @@ sensitivity; it does not claim expected value of information or account for inte
   call benchmark. Supplied volatility is not a calibrated options surface or physical forecast.
 - `market_diagnostics`: synthetic versus supplied measured tape volatility and spreads.
   Descriptive comparison does not establish realistic impact or calibrated microstructure.
+
+## Research map
+
+Research desk includes a dependency-free SVG map of the loaded scenario or selected session.
+The session view uses its own frozen source receipt even when another scenario is loaded.
+Nodes distinguish evidence/assumptions, scenario interpretations, research roles, read-only
+tool receipts, audited model claims, conditional forecasts, objections and proposed tests.
+Edges show the recorded relation: supplied evidence support/dependency/contradiction,
+agent-produced output, cited references or explicit adjustment references. Forecast comparisons
+are recomputed from visible audited forecasts, including imported sessions; a difference in
+probabilities does not establish one forecast's superiority.
+
+Select a node for exact records and its explicit neighbors. Search and category filters,
+review/disagreement filtering, neighborhood focus, background pan and zoom provide navigation.
+Keyboard selection and a complete list provide an alternative to the diagram. The rendered
+map is limited to 160 nodes and 1,200 lines, prioritizing selected-node connections; the list
+and inspector retain the full matching records. Cinematic mode adds decorative stars/glow
+and animated lines; reduced-motion settings disable animation. It does not visualize model
+attention or undisclosed reasoning.
+
+Replay advances through recorded events. Final claims/forecasts appear at their response
+checkpoint, not before it. Stream text is the last saved snapshot for that call; the backend
+does not retain token-by-token history. Replay stops when leaving the desk or hiding the page.
+Cancelled and failed sessions retain completed output and show unfinished roles separately.
+Imported archives remain visibly untrusted; their origin and timing are not independently verified.
+
+**Preview withdrawal impact** traces only explicit dependency/reference links. It does not
+estimate a causal effect or recalculate probabilities. **Create branch with evidence retracted**
+creates a new local scenario receipt with an immutable parent, identical price history and
+numerical assumptions, and the selected input retracted. Dependent scenario claims are marked
+for review; a new research plan excludes that retracted input. It does not edit the original
+session or run providers. Imported session maps and the static demo cannot create branches.
+The static demo retains map inspection, filters and navigation on its frozen scenarios.
 
 ## Deployment boundary
 

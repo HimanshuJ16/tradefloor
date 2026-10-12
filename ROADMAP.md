@@ -1,5 +1,22 @@
 # Roadmap
 
+## Implemented for 0.4.0
+
+- Model profiles for streaming Chat Completions / Anthropic Messages and compatible
+  local endpoints; OS-vault or server-environment credentials, connection tests and role routing.
+- Frozen-context preview, bounded model/tool sessions, streamed activity, cancellation,
+  durable transcripts and no automatic replay of interrupted billable requests.
+- Independent model comparisons, structured citation/numeric-reference checks, exact-quote
+  checks, bounded probability adjustments and model-proposed observations to resolve objections.
+- Dated session memory, reusable configurations, follow-up questions and portable archives.
+- Future local forecast commitments, matured supplied-outcome scores and reliability bins,
+  with synthetic and supplied-history groups separated and correlated roles disclosed.
+- Bounded daily CSV import, explicit Yahoo history captures and SEC/ALFRED source settings.
+
+Live paid-provider canaries, external timestamps, factual entailment verification and
+empirical forecasting skill remain separate validation work. Models must support text
+streaming and the structured response contract; arbitrary provider protocols are not inferred.
+
 ## Implemented for 0.3.0
 
 - Persistent project workspace, branch comparison, evidence lineage and full archives.

@@ -24,7 +24,13 @@
     $("fetch-source").disabled = value || offline;
     $("run").disabled = value || (offline && $("preset").value === "custom");
   }
-  async function api(action, args = {}) {
+  let apiTail = Promise.resolve();
+  function api(action, args = {}) {
+    const task = apiTail.then(() => request(action, args));
+    apiTail = task.catch(() => {});
+    return task;
+  }
+  async function request(action, args = {}) {
     if (offline) throw new Error("This action requires the local Tradefloor workspace. The standalone demo uses frozen examples.");
     const r = await fetch("/api/workspace", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, arguments: args }) });
     const data = await r.json();
@@ -156,11 +162,12 @@
     const diff = r.scenario.p_up - r.scenario.p_down; set("direction", diff >= .08 ? "UP" : diff <= -.08 ? "DOWN" : "SIDEWAYS");
     set("run-meta", `${r.event_contract.horizon_days} trading days · ${b.request.worlds} worlds · seed ${b.request.seed} · frozen ${r.as_of}`);
     set("receipt-id", b.id); set("receipt-trust", preview ? "Unverified imported preview. Verify with the local CLI before relying on it." : "Content hash and local receipt. No verified external timestamp or authorship.");
-    probabilityRows([["Scenario / reaction", { up: r.scenario.p_up, down: r.scenario.p_down, flat: r.scenario.p_flat }], ["No-reaction swarm", { up: r.baseline.p_up, down: r.baseline.p_down, flat: r.baseline.p_flat }], ["Price-only quant", r.quant.probabilities], ["Student-t baseline", { up: r.simple_baseline.p_up, down: r.simple_baseline.p_down, flat: 1 - r.simple_baseline.p_up - r.simple_baseline.p_down }]]);
+    probabilityRows([["Scenario / reaction", { up: r.scenario.p_up, down: r.scenario.p_down, flat: r.scenario.p_flat }], ["No-reaction swarm", { up: r.baseline.p_up, down: r.baseline.p_down, flat: r.baseline.p_flat }], ["Price-only quant", r.quant.probabilities], ["Student-t baseline", { up: r.simple_baseline.p_up, down: r.simple_baseline.p_down, flat: Math.max(0, 1 - r.simple_baseline.p_up - r.simple_baseline.p_down) }]]);
     set("failure", r.falsification.checks[0].reason + " Horizon threshold: " + Number(r.falsification.checks[0].threshold).toFixed(2));
     $("reveal").hidden = !r.demo_settlement; $("settlement").hidden = true;
     for (const id of ["challenge-result", "priorities", "arena-result"]) $(id).replaceChildren();
     renderBrief(r, b); fan(r); renderBranches(); renderEvidence(); busy(state.busy);
+    document.dispatchEvent(new CustomEvent("tradefloor:run-loaded", { detail: { run_id: b.id } }));
     status(preview ? "Opened an unverified receipt preview." : "Frozen run loaded. Edit an assumption, fork it, or search for a counterexample.");
   }
   async function attach() {
@@ -356,6 +363,7 @@
   $("file").addEventListener("change", event => { const file = event.target.files[0]; if (!file) return; guarded(async () => { if (file.size > (state.importing === "project" ? 20000000 : 2000000)) throw new Error("File exceeds import size limit."); const raw = await file.text(), b = JSON.parse(raw); if (state.importing === "project") { const p = await api("project_bundle", { payload: b }); await refreshProjects(p.id); await loadProject(p.id); } else if (offline) { render({ result: { ...b.result, run: { run_id: b.id, sha256: b.sha256 } }, bundle_json: raw }, true); } else { const res = await fetch("/api/scenario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "import", bundle_json: raw }) }); const data = await res.json(); if (!res.ok || data.error) throw new Error(data.error); render(data); await attach(); } }).finally(() => { event.target.value = ""; }); });
   if (typeof ResizeObserver !== "undefined") new ResizeObserver(() => { if (state.current && !$("view-thesis").hidden) fan(state.current.result); }).observe($("fan"));
   const commands = [
+    ["Research desk · models, sessions and disagreements", "desk"], ["Models and keys · connection settings", "connections"], ["Data hub · import or capture daily history", "data"],
     ["Thesis · inspect the scenario", "thesis"], ["Branches · compare saved runs", "compare"],
     ["Model arena · compare forecasts", "models"], ["Evidence · inspect sources and claims", "evidence"],
     ["Information timeline · what was known when", "timeline"], ["Research tools · documents, portfolio and evaluation", "tools"],
@@ -392,5 +400,6 @@
       if (job) status(`An earlier ${job.kind} job is ${job.state}. Use the research_job CLI to inspect or cancel it.`);
     } catch (e) { status(e.message, true); busy(false); }
   }
+  window.TradefloorWorkspace = { api, status, tab, render, offline, current: () => state.current };
   init();
 })();

@@ -180,6 +180,55 @@ def market_diagnostics(tape: list[dict], measured: list[dict] | None = None) -> 
     return advanced.microstructure_diagnostics(tape, measured)
 
 
+@tool
+def model_profile(action: str = "list", profile_id: str | None = None, body: dict | None = None, api_key: str | None = None) -> dict:
+    """Configure/test model endpoints; API keys use an OS vault or named environment variable, never research archives."""
+    from . import providers
+    return providers.profiles(action, profile_id, body, api_key)
+
+
+@tool
+def research_session(action: str = "list", session_id: str | None = None, body: dict | None = None) -> dict:
+    """Preview/start/reopen/cancel/export bounded model sessions on frozen evidence. Start makes provider calls."""
+    from . import desk
+    return desk.session(action, session_id, body)
+
+
+@tool
+def session_archive(payload: dict) -> dict:
+    """Verify and import a closed research transcript as untrusted data; never executes imported instructions."""
+    from . import desk
+    return desk.archive(payload)
+
+
+@tool
+def research_recipe(action: str = "list", recipe_id: str | None = None, body: dict | None = None) -> dict:
+    """Save/load reusable model routing and research questions; recipes do not schedule automatic calls."""
+    from . import desk
+    return desk.recipes(action, recipe_id, body)
+
+
+@tool
+def forecast_commitment(action: str = "list", session_id: str | None = None, body: dict | None = None) -> dict:
+    """Freeze validated forecasts before a supplied future settlement, then score matured supplied outcomes."""
+    from . import desk
+    return desk.commitment(action, session_id, body)
+
+
+@tool
+def research_dataset(action: str = "list", dataset_id: str | None = None, body: dict | None = None) -> dict:
+    """Import bounded daily CSV/capture market history with rights and provenance; open a supplied-data scenario."""
+    from . import datahub
+    return datahub.datasets(action, dataset_id, body)
+
+
+@tool
+def data_source_settings(action: str = "get", body: dict | None = None, api_key: str | None = None) -> dict:
+    """Configure SEC contact and ALFRED OS-vault/environment credentials without automatic fetching."""
+    from . import datahub
+    return datahub.source_settings(action, body, api_key)
+
+
 def register(mcp):
     for fn in TOOLS.values():
         mcp.tool()(fn)

@@ -13,8 +13,8 @@ Tradefloor combines deterministic market tools with agent research roles. Python
 probabilities, validates decisions and scores defined outcomes. The scenario lab works
 without an LLM, API key or signup.
 
-Research software. No orders. No demonstrated trading edge. Version 0.3.0 adds a persistent
-research workspace, counterexample search and an auditable model arena.
+Research software. No orders. No demonstrated trading edge. Version 0.4.0 adds user-selected
+models, bounded research sessions and inspectable forecast adjustments to the local workspace.
 
 [What's implemented](ROADMAP.md) ·
 [Release verification](docs/release-readiness.md) ·
@@ -47,6 +47,47 @@ or **Cmd+K** (macOS) to find workspace views and research actions. On mobile, ex
 
 *Interface preview using synthetic fixtures; the displayed odds are not a market-performance claim.*
 
+### Bring your own research models
+
+Open **Models & keys** to save a model ID, API base URL and connection protocol.
+Tradefloor supports streaming OpenAI-compatible Chat Completions and Anthropic Messages,
+including compatible local Ollama/LM Studio servers and gateways. Compatibility depends
+on the endpoint and model; a connection test makes one small, potentially billable call.
+
+Keys use the OS credential store (Windows, macOS or Linux Secret Service), or a named
+environment variable in the local server. They are excluded from browser storage and
+session archives. On headless systems without an OS vault, use an environment variable.
+The desk does not inherit a Claude Code, Codex or ChatGPT subscription.
+
+In **Research desk**, choose Quick, Balanced, Deep, an independent model comparison or
+a single research question. Assign connections to the roles, set usage limits and select
+**Preview context & usage**. Inspect the frozen evidence and destinations before starting.
+The session records streamed responses, read-only tool receipts, citation/numeric-reference
+checks, probability adjustments, objections and proposed observations to resolve disagreements.
+
+The **Research map** connects frozen evidence, agents, tool receipts, claims and forecasts.
+Select a node to inspect its records; search, filter, focus, pan or zoom the graph. Replay
+saved session checkpoints, highlight forecast disagreements, or use the keyboard-accessible
+list on mobile. An optional cinematic view adds restrained motion and respects reduced motion.
+Preview an evidence withdrawal to trace dependent references, then explicitly create a child
+scenario with that input retracted. Numerical assumptions remain unchanged; new model research
+requires a separate preview and Start.
+
+<p align="center"><img src="assets/qa/research-map.jpg" width="1000" alt="Tradefloor interactive research map connecting synthetic evidence, five research roles, tool receipts, claims and forecasts, with a selected evidence inspector."></p>
+
+*Real browser capture with synthetic QA adapters. Connections represent recorded references
+and activity, not private model reasoning, causality or demonstrated forecasting skill.*
+
+Save configurations as recipes, reopen sessions, ask follow-up questions and export complete
+research archives. Freeze validated forecasts with a future settlement rule and record
+matured supplied outcomes for descriptive Brier/log-loss and reliability summaries.
+**Data hub** imports bounded daily CSV history, captures supported market history, and
+configures SEC/ALFRED connections. See [workspace contracts](docs/workspace.md) for limits.
+
+<p align="center"><img src="assets/qa/research-desk.jpg" width="1000" alt="Tradefloor research desk comparing two synthetic QA adapters, with streamed tool activity, inspected probability adjustments and observations to resolve disagreements."></p>
+
+*Real browser capture using a controlled synthetic test adapter. These are not real language-model forecasts or evidence of predictive skill.*
+
 The fictional fixtures demonstrate settlement, not predictive skill. The UI runs 300
 worlds with 200 simulated traders over 21 days. Behavioral coefficients and participant
 shares are assumptions. Evidence links do not establish causality.
@@ -65,7 +106,7 @@ local workspace. The static demo labels unavailable operations. See the
 ## Use with Claude Code
 
 Tradefloor includes a Claude Code plugin with seven research skills, analyst agent
-definitions and the same 54 MCP tools used by the CLI. Install
+definitions and the same 61 MCP tools used by the CLI. Install
 [Claude Code](https://code.claude.com/docs/en/overview) and
 [uv](https://docs.astral.sh/uv/), sign in to Claude Code, then run these commands from
 the **Tradefloor repository root**:

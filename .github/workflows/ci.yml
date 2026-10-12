@@ -45,13 +45,17 @@ jobs:
           node --check server/src/tradefloor/assets/app.js
           node --check server/src/tradefloor/assets/workspace.js
           node --check server/src/tradefloor/assets/workspace-model.js
+          node --check server/src/tradefloor/assets/desk.js
+          node --check server/src/tradefloor/assets/research-map-model.js
+          node --check server/src/tradefloor/assets/research-map.js
           node --test tests/frontend.test.cjs
           node --test tests/workspace-model.test.cjs
+          node --test tests/research-map.test.cjs
       - name: Install built wheel and verify assets
         shell: bash
         run: |
           wheel=$(find dist -name '*.whl' -print -quit)
-          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'thesis_challenge' in cli.TOOLS; html = demo.workspace_document(); assert 'A thesis is a starting point.' in html; assert 'TradefloorView' in html; print('wheel verified')"
+          uv run --isolated --no-project --with "$wheel" python -c "from tradefloor import cli,demo; assert 'research_session' in cli.TOOLS; html = demo.workspace_document(); assert 'A thesis is a starting point.' in html; assert 'TradefloorView' in html; assert 'desk-session-meta' in html; assert 'TradefloorMapModel' in html; assert '/*DESK*/' not in html; assert '/*RESEARCH_MAP*/' not in html; print('wheel verified')"
       - uses: actions/upload-artifact@v4
         with:
           name: python-distributions

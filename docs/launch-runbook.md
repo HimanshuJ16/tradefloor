@@ -4,6 +4,21 @@
 
 Record results for the release revision in [release-readiness.md](release-readiness.md).
 
+After building the wheel/source archive, exporting the demo and refreshing their checksum
+manifest, run the repeatable verification command:
+
+```bash
+uv run --locked --project server --group dev python tools/verify_launch.py --tests --skip-live --github HimanshuJ16/tradefloor --output dist/launch-check-v0.4.0.json
+```
+
+The report separates local checks from an uncommitted source revision, unconfigured Pages,
+skipped live calls and pending public browser QA. It never publishes, changes Pages settings
+or makes model requests. `--skip-live` records an intentional skip, not successful live validation.
+The public demo may be launched as a synthetic research demonstration with that limit stated.
+Both demo workflows now verify all 21 hashes, case labels, unique run identities, fork lineage,
+synthetic data rights, absence of credential fields, current engine identity and exact packaged
+UI before uploading or deploying. A stale export fails instead of silently shipping old assets.
+
 1. Run generated-file checks, all offline tests and `uv build --project server`.
 2. Install the built wheel in a clean environment; verify CLI/MCP and packaged demo assets.
 3. Run the provider-dependent smoke script with isolated TRADEFLOOR_HOME. Missing data is
@@ -13,7 +28,7 @@ Record results for the release revision in [release-readiness.md](release-readin
    downloaded export with Python run_bundle. This needs a real browser.
 5. Inspect the diff and release artifacts for secrets and licensed provider snapshots.
    Public demo artifacts must contain only synthetic fixtures.
-6. Commit reviewed changes, publish the matching v0.3.0 tag and release artifacts. The
+6. Commit reviewed changes, publish the matching v0.4.0 tag and release artifacts. The
    pinned Antigravity configuration relies on that tag. These remote actions have not
    been performed by preparing this working tree.
 

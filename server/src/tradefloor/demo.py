@@ -44,10 +44,13 @@ def document(embedded: dict | None = None) -> str:
 def workspace_document(embedded: dict | None = None) -> str:
     html = (ASSETS / "workspace.html").read_text(encoding="utf-8")
     payload = canonical(embedded or {}).replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    return (html.replace("/*STYLE*/", (ASSETS / "workspace.css").read_text(encoding="utf-8"))
+    return (html.replace("/*STYLE*/", (ASSETS / "workspace.css").read_text(encoding="utf-8") + (ASSETS / "desk.css").read_text(encoding="utf-8") + (ASSETS / "research-map.css").read_text(encoding="utf-8"))
+            .replace("<!--DESK_PANELS-->", (ASSETS / "desk.html").read_text(encoding="utf-8"))
             .replace("/*DATA*/", "window.DEMO_DATA=" + payload + ";")
             .replace("/*MODEL*/", (ASSETS / "workspace-model.js").read_text(encoding="utf-8"))
-            .replace("/*APP*/", (ASSETS / "workspace.js").read_text(encoding="utf-8")))
+            .replace("/*APP*/", (ASSETS / "workspace.js").read_text(encoding="utf-8"))
+            .replace("/*RESEARCH_MAP*/", (ASSETS / "research-map-model.js").read_text(encoding="utf-8") + "\n" + (ASSETS / "research-map.js").read_text(encoding="utf-8"))
+            .replace("/*DESK*/", (ASSETS / "desk.js").read_text(encoding="utf-8")))
 
 
 def workspace_action(body: dict) -> dict:
@@ -66,6 +69,9 @@ def workspace_action(body: dict) -> dict:
         return {"result": {**b["result"], "run": {"run_id": b["id"], "sha256": b["sha256"]}}, "bundle_json": canonical(b)}
     if action == "fork":
         r = lab.fork(arguments["run_id"], arguments["overrides"])
+        return {"result": r, "bundle_json": canonical(runs.read(r["run"]["run_id"]))}
+    if action == "evidence_fork":
+        r = lab.fork_evidence(arguments["run_id"], arguments["evidence_id"])
         return {"result": r, "bundle_json": canonical(runs.read(r["run"]["run_id"]))}
     if action == "project_export":
         return research.export_project(**arguments)
@@ -153,6 +159,16 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
         def do_POST(self):
             expected = f"http://127.0.0.1:{self.server.server_port}"
             if not self.valid_host() or self.headers.get("Origin") != expected:
+                # On Windows, closing a socket with an unread short POST can
+                # reset TCP before the caller receives its 403. Discard only a
+                # small declared body, with a short timeout; never parse/execute it.
+                try:
+                    rejected_length = int(self.headers.get("Content-Length", "0"))
+                    if 0 < rejected_length <= 8192:
+                        self.connection.settimeout(1)
+                        self.rfile.read(rejected_length)
+                except (ValueError, OSError):
+                    pass
                 return self.send(
                     403, b'{"error":"same-origin browser requests required"}'
                 )

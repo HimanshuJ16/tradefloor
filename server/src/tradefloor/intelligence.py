@@ -125,6 +125,7 @@ def append(kind, payload):
 
 def memory(cutoff, context=None):
     from . import events
+    from .desk import memory as session_memory
 
     end = stamp(cutoff)
     with connect(research.database()) as db:
@@ -165,5 +166,6 @@ def memory(cutoff, context=None):
     return {
         "assessments": list(assessments.values()),
         "scores": scored,
+        "model_sessions": session_memory(cutoff, context),
         "note": "Only records and outcomes available by the cutoff. Descriptive scores, no automatic trust weights or model promotion.",
     }

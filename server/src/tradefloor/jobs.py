@@ -8,7 +8,7 @@ import uuid
 from . import research, validation as v
 from .storage import canonical, connect
 
-ALLOWED = {"challenge", "investigate", "arena", "fetch", "scenario", "project_scenario"}
+ALLOWED = {"challenge", "investigate", "arena", "fetch", "scenario", "project_scenario", "model_session", "dataset_capture"}
 
 
 def _table(db):
@@ -86,6 +86,13 @@ def cancel(identifier):
 
 def execute(kind, arguments, progress=None):
     from . import arena, lab, timeline
+
+    if kind == "model_session":
+        from . import desk
+        return desk.execute(**arguments, progress=progress)
+    if kind == "dataset_capture":
+        from . import datahub
+        return datahub.datasets("capture", body=arguments)
 
     if kind == "challenge":
         return research.challenge(**arguments, progress=progress)

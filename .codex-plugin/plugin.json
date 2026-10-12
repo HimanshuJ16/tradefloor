@@ -1,6 +1,6 @@
 {
   "name": "tradefloor",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "An open financial research desk and scenario lab: deterministic market tools, agent debate, frozen replay, assumption sweeps, evidence and scored forecasts. Historical availability limits are explicit. Research software; no orders or demonstrated edge.",
   "author": {
     "name": "Himanshu Jangir",

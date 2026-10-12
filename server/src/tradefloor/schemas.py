@@ -197,7 +197,7 @@ def bundle(payload):
                 {
                     "up": simple["p_up"],
                     "down": simple["p_down"],
-                    "flat": 1 - simple["p_up"] - simple["p_down"],
+                    "flat": max(0.0, 1 - simple["p_up"] - simple["p_down"]),
                 }
             )
             quantiles(simple["return_pct"])

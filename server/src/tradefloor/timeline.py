@@ -112,12 +112,13 @@ def _fetch(url, headers=None):
 
 
 def fetch(provider, identifier, vintage=None):
+    from .datahub import source_credential
     now = datetime.now(timezone.utc).isoformat()
     records = []
     if provider == "sec":
         if not re.fullmatch(r"\d{1,10}", identifier):
             raise ValueError("SEC identifier must be a CIK with up to 10 digits")
-        agent = os.environ.get("TRADEFLOOR_SEC_USER_AGENT", "")
+        agent = os.environ.get("TRADEFLOOR_SEC_USER_AGENT") or source_credential("sec")
         if "@" not in agent or len(agent) > 250:
             raise ValueError(
                 "set TRADEFLOOR_SEC_USER_AGENT to your application name and contact email"
@@ -158,7 +159,7 @@ def fetch(provider, identifier, vintage=None):
         if not re.fullmatch(r"[A-Za-z0-9_]{1,80}", identifier):
             raise ValueError("invalid FRED series ID")
         vintage = v.iso_date(vintage, "vintage")
-        key = os.environ.get("FRED_API_KEY")
+        key = os.environ.get("FRED_API_KEY") or source_credential("alfred")
         if not key:
             raise ValueError("set FRED_API_KEY to fetch ALFRED vintages")
         data = _fetch(

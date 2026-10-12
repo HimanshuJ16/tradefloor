@@ -1,6 +1,6 @@
 [project]
 name = "tradefloor"
-version = "0.3.0"
+version = "0.4.0"
 description = "Financial research desk and reproducible scenario lab: deterministic analytics, evidence, replay and forecast evaluation."
 license = "MIT"
 requires-python = ">=3.11"
@@ -18,6 +18,8 @@ dependencies = [
   "pandas>=2.1",
   "numpy>=1.26",
   "exchange-calendars>=4.5,<5",
+  "httpx>=0.27,<1",
+  "keyring>=25,<26",
 ]
 
 [project.urls]

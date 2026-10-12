@@ -106,7 +106,7 @@ uv run --project server tradefloor archival_fetch provider=sec identifier=320193
 uv run --project server tradefloor information_timeline cutoff=2026-09-28T23:59:59Z
 ```
 
-Use `tradefloor list` for all 54 tools and exact signatures. Structured file arguments
+Use `tradefloor list` for all 61 tools and exact signatures. Structured file arguments
 are one JSON object, for example `{"action":"create","body":{"title":"Earnings thesis"}}`.
 SEC requires a contact User-Agent in the server environment; ALFRED requires a FRED key.
 External engine integration status is explicit in [extensions.md](extensions.md).
@@ -129,3 +129,39 @@ uv run --project server tradefloor journal_export
 Structured arguments support `--file` and `--json`. See [research-lab.md](research-lab.md)
 for event contracts, evidence, sizing, learning review and importing custom snapshots.
 Historical bar truncation does not establish historical source/universe availability.
+
+## Model research desk (0.4)
+
+The browser provides forms for the same CLI/MCP contracts:
+
+| Tool | Actions |
+|---|---|
+| `model_profile` | list/get/save/test/delete; test makes one provider call |
+| `research_session` | plan/start/list/get/cancel/export |
+| `session_archive` | verify/import a closed archive as untrusted data |
+| `research_recipe` | list/get/save routing and usage limits |
+| `forecast_commitment` | list/freeze/settle with future close and supplied outcome |
+| `research_dataset` | list/get/import/capture/scenario |
+| `data_source_settings` | get/save SEC contact and ALFRED vault/environment settings |
+
+Configure a local endpoint without a key:
+
+```bash
+uv run --project server tradefloor model_profile --json '{"action":"save","body":{"name":"Local researcher","protocol":"openai","base_url":"http://localhost:11434/v1","model":"YOUR_INSTALLED_MODEL","input_price":0,"output_price":0}}'
+```
+
+For a cloud profile, set the secret in the server environment and use `body.key_env`;
+do not put API keys into shell history or agent transcripts. Model IDs are supplied by
+your endpoint, not automatically inferred by Tradefloor.
+
+Preview a saved scenario with `research_session action=plan` and body fields `run_id`,
+`question`, `mode`, `profile_id` (or `role_profiles`), `max_calls`, `max_tokens`, and optional
+`max_cost_usd`. Comparison mode takes two to four `compare_profiles`. Inspect the returned
+context and destinations, then start using its exact `plan_id` and `plan_sha256`.
+
+The workspace owns a worker. CLI-only users can run `research_job action=work job_id=...`
+to process queued work. Poll `research_session action=get session_id=...`; export after
+completion/cancellation. Exports preserve canonical archive bytes inside `archive_json`
+so browser number formatting cannot change receipt hashes. Imports never execute instructions.
+
+See [workspace contracts](workspace.md) for credential, budget, time and scoring limitations.

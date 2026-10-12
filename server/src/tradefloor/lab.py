@@ -241,7 +241,7 @@ def simulate(
         {
             "case": case,
             "name": info["name"],
-            "symbol": "SYNTHETIC" if synthetic else "USER-SNAPSHOT",
+            "symbol": "SYNTHETIC" if synthetic else validation.symbol(price_snapshot.get("symbol", "USER-SNAPSHOT")),
             "as_of": str(df.index[-1].date()),
             "data_kind": "synthetic educational fixture"
             if synthetic
@@ -283,6 +283,11 @@ def simulate(
         "sensitivity": sensitivity,
     }
     frozen = snapshots.frame(df)
+    if not synthetic and price_snapshot:
+        from .evidence import text
+        for key in ("symbol", "adjustment_basis", "rights"):
+            if key in price_snapshot:
+                frozen[key] = text(price_snapshot[key], key, 1000)
     if synthetic:
         frozen.update(
             adjustment_basis="synthetic prices; no corporate actions",
@@ -348,3 +353,21 @@ def fork(run_id: str, overrides: dict) -> dict:
     args["price_snapshot"] = original["inputs"]["prices"]
     args["synthetic_outcome"] = original["inputs"].get("synthetic_outcome")
     return simulate(**args)
+
+
+def fork_evidence(run_id: str, evidence_id: str) -> dict:
+    """Retract one input in a child receipt; preserve prices and numerical assumptions."""
+    original = runs.read(run_id)
+    if original["kind"] != "scenario":
+        raise ValueError("Evidence branches require a frozen scenario")
+    if not isinstance(evidence_id, str) or not any(n["id"] == evidence_id for n in original["inputs"]["evidence"]):
+        raise ValueError("Select a known evidence input, not a claim")
+    evidence = [{**n, "status": "retracted"} if n["id"] == evidence_id else dict(n) for n in original["inputs"]["evidence"]]
+    if evidence == original["inputs"]["evidence"]:
+        raise ValueError("Evidence is already retracted in this receipt")
+    return simulate(**{
+        **original["request"], "parent_run_id": run_id,
+        "price_snapshot": original["inputs"]["prices"],
+        "synthetic_outcome": original["inputs"].get("synthetic_outcome"),
+        "evidence": evidence, "claims": original["inputs"].get("claims"),
+    })

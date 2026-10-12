@@ -20,6 +20,8 @@ jobs:
         env:
           TRADEFLOOR_HOME: ${{ runner.temp }}/tradefloor-pages
         run: uv run --locked --project server python -m tradefloor.demo --export dist/demo/index.html
+      - name: Verify public artifact, lineage and packaged UI
+        run: uv run --locked --project server python tools/verify_launch.py --artifact-only --output dist/pages-check.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
