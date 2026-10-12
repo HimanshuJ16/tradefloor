@@ -29,7 +29,7 @@ UI before uploading or deploying. A stale export fails instead of silently shipp
 5. Inspect the diff and release artifacts for secrets and licensed provider snapshots.
    Public demo artifacts must contain only synthetic fixtures.
 6. Commit reviewed changes, publish the matching v0.5.0 tag and release artifacts. The
-   pinned Antigravity configuration relies on that tag. The 0.5 release is being finalized after the verified Pages deployment.
+   pinned Antigravity configuration relies on that tag. Release artifacts are separate from the static Pages demo.
 
 ## Public demo
 
@@ -54,7 +54,7 @@ source tag available for users who want custom snapshots or arbitrary assumption
 
 Live demo: **https://himanshuj16.github.io/tradefloor/**
 Source: **https://github.com/HimanshuJ16/tradefloor**
-Release target: **https://github.com/HimanshuJ16/tradefloor/releases/tag/v0.5.0**
+Release: **https://github.com/HimanshuJ16/tradefloor/releases/tag/v0.5.0**
 
 Public browser QA covered scenario switching, assumption forks, outcome reveal, map
 inspection, source/report preview and HTML export on desktop/mobile. The Pages build

@@ -65,8 +65,9 @@ synthetic outcome reveal, source/report preview, browser HTML download and the i
 map. Mobile thesis/report layouts had no document-wide overflow. No captured console errors.
 [Public deployment screenshot](../assets/qa/public-demo.jpg).
 
-The 0.5 tag/release is being finalized from the reviewed source. No Hacker News submission
-has been made. Cloud provider calls and model-driven host sessions remain unverified, as
+Release artifacts and the pinned installation tag use the
+[0.5.0 release page](https://github.com/HimanshuJ16/tradefloor/releases/tag/v0.5.0).
+No Hacker News submission has been made. Cloud provider calls and model-driven host sessions remain unverified, as
 stated above; the public launch is an experimental synthetic research demonstration.
 
 The only supported public hosting target is the standalone synthetic HTML. The loopback
